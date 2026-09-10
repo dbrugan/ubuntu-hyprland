@@ -1,3 +1,35 @@
+# Project Overview
+
+This repo is a custom Ubuntu setup using Hyprland and Quickshell, based on
+Omarchy 4.0.3. It is **not** a 1:1 Omarchy port, not a full-fledged distro, and
+not an ISO: it is a manually installed (debootstrap + Limine + btrfs) Ubuntu
+26.04 with a Hyprland/Quickshell desktop.
+
+- Follow Omarchy's conventions and setup as much as possible (snapper snapshots,
+  limine bootloader, quickshell bar/shell, themed configs).
+- Use pacstall (custom pacscripts) for packages not available in Ubuntu repos.
+- Install entry point is `./boot.sh` in the repo; see `ubuntu/README.md`.
+
+# Repo Layout
+
+- `omarchy-4.0.3/` - the upstream Omarchy reference. Read-only: never edit this
+  directory. Consult it for conventions, skills, and patterns to port.
+- `ubuntu/` - the actual work: installer, bin commands, configs.
+- `README.md` - project goals and target-system spec (btrfs subvolumes, zram,
+  no swap, network-manager default, minimum tty install).
+
+# Task Guides
+
+Deeper instructions live in the Omarchy reference. Read the matching guide there
+before porting or extending that area:
+
+- `omarchy-4.0.3/agents/skills/command-metadata.md` - adding or changing commands in `bin/`
+- `omarchy-4.0.3/agents/skills/install-scripts.md` - working under `install/` or on system setup
+- `omarchy-4.0.3/agents/skills/shell-dev.md` - editing the Quickshell desktop
+- `omarchy-4.0.3/agents/skills/icon-font.md` - adding branded glyphs to the icon font
+- `omarchy-4.0.3/agents/skills/acceptance-tests.md` - graphical acceptance tests
+- `omarchy-4.0.3/agents/skills/visual-verification.md` - verifying visual changes in the running UI
+
 # Style
 
 - Two spaces for indentation, no tabs
@@ -6,10 +38,11 @@
 - Prefer `(( ))` over numeric operators inside `[[ ]]` (e.g., `(( count < 50 ))`, not `[[ $count -lt 50 ]]`)
 - For strings/paths with spaces, quote them instead of escaping spaces with `\ ` (e.g., `"$APP_DIR/Disk Usage.desktop"`, not `$APP_DIR/Disk\ Usage.desktop`)
 - Shebangs must use `#!/bin/bash` consistently (never `#!/usr/bin/env bash`)
+- Scripts under `install/` may be sourced and intentionally omit shebangs
 
 # Command Naming
 
-All commands start with `ubuntu-`. Prefixes indicate purpose:
+All commands start with `ub-`. Prefixes indicate purpose:
 
 - `cmd-` - check if commands exist, misc utility commands
 - `capture-` - screenshots, screen recordings, and other capture tools
@@ -24,44 +57,152 @@ All commands start with `ubuntu-`. Prefixes indicate purpose:
 - `theme-` - theme management
 - `update-` - update components
 
+Current `bin/` files (e.g. `ub-npx-install`, `ub-tui-install`,
+`ub-webapp-install`) use a verb-last form. New commands should follow the
+verb-first prefix scheme above unless the command is one of the established
+helpers listed below.
+
+# Command Metadata
+
+Commands in `bin/` declare CLI metadata in comments near the top of the file.
+The router (in Omarchy, `bin/omarchy`; to be ported as the `ub` dispatcher)
+scans the first 80 lines for `# ub:key=value` metadata:
+
+- `# ub:group=...` - override the command group inferred from the filename
+- `# ub:name=...` - override the command name inferred from the filename
+- `# ub:summary=...` - short help text (required for user-facing commands)
+- `# ub:args=...` - usage arguments
+- `# ub:examples=...` - examples separated with ` | `
+- `# ub:alias=...` / `# ub:aliases=...` - alternate routes
+- `# ub:hidden=true` - hide from default command listings
+- `# ub:requires-sudo=true` - mark commands that require sudo (`hidden` and
+  `requires-sudo` must be `true` or omitted)
+
+The authoritative list of user-facing command groups lives in
+`GROUP_DESCRIPTIONS` in `bin/omarchy`. Keep it updated when adding a new command
+prefix users are meant to browse to, and consult it rather than maintaining a
+second exhaustive prefix list.
+
+Example:
+
+```bash
+# ub:summary=Take a screenshot
+# ub:args=[smart|region|windows|fullscreen] [slurp|copy]
+# ub:examples=ub screenshot | ub capture screenshot region
+```
+
+# Runtime Environment
+
+- `$UBUNTU_PATH` (default `~/.local/share/ubuntu-hyprland`), `$UBUNTU_INSTALL`,
+  and `$UBUNTU_INSTALL_LOG_FILE` are exported by `install.sh`.
+- Use `$UBUNTU_PATH` / `$UBUNTU_INSTALL` instead of hardcoded
+  `~/.local/share/ubuntu-hyprland` paths. Several install scripts still hardcode
+  it; prefer the env vars in new code.
+- `install.sh` prepends `$UBUNTU_PATH/bin` to `PATH`; bin commands are invoked as
+  `ub-*`.
+
 # Helper Commands
 
 Use these instead of raw shell commands:
 
-- `ubuntu-cmd-missing` / `ubuntu-cmd-present` - check for commands
-- `ubuntu-pkg-missing` / `ubuntu-pkg-present` - check for packages
-- `ubuntu-pkg-add` - install packages (handles both apt and pacstall)
+- `ub-cmd-missing` / `ub-cmd-present` - check for commands
+- `ub-pkg-missing` / `ub-pkg-present` - check for packages (don't use these if you
+  can just use `ub-pkg-add`)
+- `ub-pkg-add` - install packages (handles both apt and pacstall)
+- `ub-notification-send` - send desktop notifications; do not call `notify-send` directly
+
+Commands installed by the default package set are runtime invariants. Invoke
+them directly; do not add defensive `ub-cmd-present` / `ub-cmd-missing` checks
+around them. Use command-presence helpers only for genuinely optional
+dependencies or code that can run before the default package set is installed.
+
+Exceptions are allowed for package-helper scripts where the helper
+may not be available yet, where the helper itself is being implemented, or where
+direct package-manager behavior is required.
+
+# Packaging
+
+- `install/ubuntu-base.packages` - one package per line, `#` comments and blank
+  lines ignored. This is the singular package list; split into base vs "other"
+  lists once the port grows.
+- Prefer `ub-pkg-add` for installing; it currently installs via apt and is
+  expected to also route pacstall packages.
+- Write custom pacscripts for packages unavailable in Ubuntu repos.
+- Webapp/TUI/npx installers (`ub-webapp-install`, `ub-tui-install`,
+  `ub-npx-install`) write `.desktop` files and wrappers under `~/.local/`; keep
+  their interactive vs positional-argument behavior consistent.
+
+# Privileged Commands
+
+- Draw the `sudo` line by whether the caller has a terminal to enter a password
+  in; follow the Omarchy "Privilege Escalation" guidance
+  (`omarchy-4.0.3/default/agents/skills/omarchy/SKILL.md`).
+- The installer writes a limited passwordless-sudo allowlist to
+  `/etc/sudoers.d/first-run` (see `install/preflight/first-run-mode.sh`). Do not
+  broaden it beyond the listed commands.
+
+# Migrations
+
+Migrations are a deliberate deviation from Omarchy: they are not ported, and
+`omarchy-migrate` / `ub-dev-add-migration` will not exist here. Do not add a
+migration runner or `migrations/` directory. For state repair, use idempotent
+`apply-*`/`setup-*` commands or fold the repair into the `ub-update` path
+instead.
 
 # Config Structure
 
 - `config/` - default configs copied to `~/.config/`
 - `default/themed/*.tpl` - templates with `{{ variable }}` placeholders for theme colors
-- `themes/*/colors.toml` - theme color definitions (accent, background, foreground, color0-15)
+- `themes/*/colors.toml` - theme color definitions using semantic names:
+  `mode`, `accent`, `selection`, `muted`, the `background`/`foreground`
+  families (`dark_*`, `light_*`, `bright_*`), and named colors
+  (`red`/`green`/`yellow`/`blue`/`magenta`/`cyan`/`orange`/`brown` plus
+  `bright_*` variants). The old `color0-15` palette is legacy.
 
 # Refresh Pattern
 
 To copy a default config to user config with automatic backup:
 
 ```bash
-ubuntu-refresh-config hypr/hyprlock.conf
+ub-refresh-config hypr/hyprlock.conf
 ```
 
-This copies `~/.local/share/ubuntu-hyprland/config/hypr/hyprlock.conf` to `~/.config/hypr/hyprlock.conf`.
+This copies the default config to `~/.config/hypr/hyprlock.conf`. The argument
+is interpolated into both paths and only checked with `[[ -e ]]`, so pass a
+plain relative path: a name containing `..` resolves and copies, landing outside
+`~/.config` rather than being rejected.
 
-# Migrations
+# Tests
 
-To create a new migration, run `ubuntu-dev-add-migration --no-edit`. This creates a migration file named after the unix timestamp of the last commit.
+Automated tests are not ported yet. The Omarchy model to follow:
 
-Migration format:
-- No shebang line
-- Start with an `echo` describing what the migration does
-- Use `$UBUNTU_PATH` to reference the ubuntu directory
+- `./test/all` - aggregate runner for CLI and shell tests (no graphical tests)
+- `./test/cli` - CLI routing, command metadata, theme helpers, and safe dispatch
+  coverage, using TAP-style `pass`/`fail` output and `timeout` on help dispatch
+- `./test/shell` - runs every `test/shell.d/*-test.sh`; source
+  `test/shell.d/base-test.sh` for shared assertions
+- Tests enforce that `bin/` never uses raw `command -v` or bare `notify-send`
+  (helpers must be used)
 
-Example:
-```bash
-echo "Disable fingerprint in hyprlock if fingerprint auth is not configured"
+# Git
 
-if ubuntu-cmd-missing fprintd-list || ! fprintd-list "$USER" 2>/dev/null | grep -q "finger"; then
-  sed -i 's/fingerprint:enabled = .*/fingerprint:enabled = false/' ~/.config/hypr/hyprlock.conf
-fi
-```
+- Commit messages follow the gitmoji convention (gitmoji.dev); prefix each
+  commit with a relevant emoji (e.g. `✨`, `♻️`, `🐛`, `🔧`).
+- Commits should be atomic: include only one coherent change or fix, and do not
+  mix unrelated work.
+- Commit messages should be succinct and describe the change being made.
+
+# Known WIP Gaps
+
+These pieces are intentional scaffolding, not breakage:
+
+- `install.sh` sources `login/all.sh` and `post-install/all.sh` which do not
+  exist yet.
+- `install/config/all.sh` references ~28 stage scripts of which only
+  `config.sh` exists.
+- `install/packaging/icons.sh` expects `applications/icons/*.png` which has not
+  been added.
+- `install/packaging/nvim.sh` calls the external `dbrugan-nvim-setup` command,
+  not defined in this repo.
+- `helpers/presentation.sh` expects `$UBUNTU_PATH/logo.txt`, which does not exist.
+- `config/` currently contains only the icon font, not the full config set.
