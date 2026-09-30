@@ -1,19 +1,39 @@
 # Project Overview
 
 This repo is a custom Ubuntu setup using Hyprland and Quickshell, based on
-Omarchy 4.0.3. It is **not** a 1:1 Omarchy port, not a full-fledged distro, and
-not an ISO: it is a manually installed (debootstrap + Limine + btrfs) Ubuntu
-26.04 with a Hyprland/Quickshell desktop.
+Omarchy 3.8.4. It is **not** a 1:1 Omarchy port, not a full-fledged distro, and
+not an ISO: it is a manually installed (debootstrap + Limine + btrfs) Ubuntu LTS
+with a Hyprland/Quickshell desktop.
 
 - Follow Omarchy's conventions and setup as much as possible (snapper snapshots,
   limine bootloader, quickshell bar/shell, themed configs).
 - Use pacstall (custom pacscripts) for packages not available in Ubuntu repos.
 - Install entry point is `./boot.sh` in the repo; see `ubuntu/README.md`.
 
+# Supported Releases
+
+Support targets Ubuntu 26.04 only, the release this setup is developed and
+tested against. Other LTS releases, non-LTS releases, and anything past
+standard security maintenance are out of scope.
+
+- `supported_lts` in `ubuntu/install/preflight/guard.sh` is the single source of
+  truth and the preflight guard enforces it. Do not widen the list casually: it
+  requires re-running the package audit against each added release, since
+  package names are not stable across Ubuntu releases.
+- 22.04 is Canonical-supported until May 2027 but is excluded on purpose: the
+  Hyprland it ships is too outdated to run this setup, even with a PPA
+  backport.
+- Anything added to `install/ubuntu-base.packages` must exist in the 26.04
+  archive, or be pacstalled.
+
 # Repo Layout
 
-- `omarchy-4.0.3/` - the upstream Omarchy reference. Read-only: never edit this
-  directory. Consult it for conventions, skills, and patterns to port.
+- `omarchy/` - the upstream Omarchy reference, pinned to the `v3.8.4` release
+  tag (detached HEAD at `8fcc9d60`). Read-only: never edit this directory.
+  Consult it for conventions and patterns to port. Upstream's default branch
+  tracks a moving alpha, so re-pin with `git -C omarchy checkout v3.8.4`
+  rather than tracking master. Note its `version` file reads `3.8.3`: that is
+  an upstream tagging quirk, not a different release.
 - `ubuntu/` - the actual work: installer, bin commands, configs.
 - `README.md` - project goals and target-system spec (btrfs subvolumes, zram,
   no swap, network-manager default, minimum tty install).
@@ -23,12 +43,18 @@ not an ISO: it is a manually installed (debootstrap + Limine + btrfs) Ubuntu
 Deeper instructions live in the Omarchy reference. Read the matching guide there
 before porting or extending that area:
 
-- `omarchy-4.0.3/agents/skills/command-metadata.md` - adding or changing commands in `bin/`
-- `omarchy-4.0.3/agents/skills/install-scripts.md` - working under `install/` or on system setup
-- `omarchy-4.0.3/agents/skills/shell-dev.md` - editing the Quickshell desktop
-- `omarchy-4.0.3/agents/skills/icon-font.md` - adding branded glyphs to the icon font
-- `omarchy-4.0.3/agents/skills/acceptance-tests.md` - graphical acceptance tests
-- `omarchy-4.0.3/agents/skills/visual-verification.md` - verifying visual changes in the running UI
+- `omarchy/default/omarchy-skill/SKILL.md` - Omarchy's own conventions,
+  including the privilege-escalation guidance referenced below
+- `omarchy/AGENTS.md` - upstream's guidance for working in the reference
+- `omarchy/install/` and `omarchy/bin/` - the source being ported; read these
+  directly for conventions rather than looking for a per-topic guide
+
+`v3.8.4` ships a single consolidated skill at `default/omarchy-skill/SKILL.md`.
+The per-topic guides (`command-metadata.md`, `install-scripts.md`,
+`shell-dev.md`, `icon-font.md`, `acceptance-tests.md`,
+`visual-verification.md`) exist only from `v4.0.0` onward, under
+`agents/skills/`. This port follows its own conventions in `ubuntu/AGENTS.md`
+instead; do not add task-guide references to files absent from the pinned tag.
 
 # Style
 
@@ -57,10 +83,9 @@ All commands start with `ub-`. Prefixes indicate purpose:
 - `theme-` - theme management
 - `update-` - update components
 
-Current `bin/` files (e.g. `ub-npx-install`, `ub-tui-install`,
-`ub-webapp-install`) use a verb-last form. New commands should follow the
-verb-first prefix scheme above unless the command is one of the established
-helpers listed below.
+Current `bin/` files (e.g. `ub-npx-install`, `ub-tui-install`) use a verb-last
+form. New commands should follow the verb-first prefix scheme above unless the
+command is one of the established helpers listed below.
 
 # Command Metadata
 
@@ -128,15 +153,15 @@ direct package-manager behavior is required.
 - Prefer `ub-pkg-add` for installing; it currently installs via apt and is
   expected to also route pacstall packages.
 - Write custom pacscripts for packages unavailable in Ubuntu repos.
-- Webapp/TUI/npx installers (`ub-webapp-install`, `ub-tui-install`,
-  `ub-npx-install`) write `.desktop` files and wrappers under `~/.local/`; keep
-  their interactive vs positional-argument behavior consistent.
+- TUI/npx installers (`ub-tui-install`, `ub-npx-install`) write `.desktop` files
+  and wrappers under `~/.local/`; keep their interactive vs
+  positional-argument behavior consistent.
 
 # Privileged Commands
 
 - Draw the `sudo` line by whether the caller has a terminal to enter a password
   in; follow the Omarchy "Privilege Escalation" guidance
-  (`omarchy-4.0.3/default/agents/skills/omarchy/SKILL.md`).
+  (`omarchy/default/omarchy-skill/SKILL.md`).
 - The installer writes a limited passwordless-sudo allowlist to
   `/etc/sudoers.d/first-run` (see `install/preflight/first-run-mode.sh`). Do not
   broaden it beyond the listed commands.
@@ -200,9 +225,5 @@ These pieces are intentional scaffolding, not breakage:
   exist yet.
 - `install/config/all.sh` references ~28 stage scripts of which only
   `config.sh` exists.
-- `install/packaging/icons.sh` expects `applications/icons/*.png` which has not
-  been added.
-- `install/packaging/nvim.sh` calls the external `dbrugan-nvim-setup` command,
-  not defined in this repo.
 - `helpers/presentation.sh` expects `$UBUNTU_PATH/logo.txt`, which does not exist.
 - `config/` currently contains only the icon font, not the full config set.
