@@ -3,10 +3,16 @@
 # ub:summary=Returns true if any of the named packages are missing (or false if they're all there)
 # ub:args=<packages...>
 
+# Checks both apt and pacstall. Apt owns Ubuntu archive packages; pacscripts
+# install outside dpkg's database and record themselves by pkgname under
+# $METADIR, which pacstall only sets for its own process.
+
+metadata_dir="${METADIR:-/var/lib/pacstall/metadata}"
+
 for pkg in "$@"; do
-  if ! dpkg-query -W "$pkg" &>/dev/null; then
-    exit 0
-  fi
+  dpkg-query -W "$pkg" &>/dev/null && continue
+  [[ -f "$metadata_dir/$pkg" ]] && continue
+  exit 0
 done
 
 exit 1

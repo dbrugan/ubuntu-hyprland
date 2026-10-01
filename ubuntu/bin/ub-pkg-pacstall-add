@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# ub:summary=Install pacscript packages if they are missing
+# ub:args=<packages...>
+# ub:examples=ub pkg pacstall add walker-bin
+# ub:requires-sudo=true
+
+# Add the named pacscripts to the system if they're missing. Returns false if it couldn't be done.
+# apt-only packages belong in ub-pkg-add; this is for the pacstall section of
+# install/ubuntu-base.packages.
+
+if ub-pkg-missing "$@"; then
+  # -P keeps the install unattended, since the installer has no terminal to prompt in
+  sudo pacstall -I -P "$@" || exit 1
+fi
+
+for pkg in "$@"; do
+  # Secondary check to handle states where pacstall doesn't actually register an error
+  if ! ub-pkg-present "$pkg"; then
+    echo -e "\033[31mError: Package '$pkg' did not install\033[0m" >&2
+    exit 1
+  fi
+done
+
+exit 0

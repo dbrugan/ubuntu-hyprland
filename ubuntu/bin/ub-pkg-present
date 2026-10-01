@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# ub:summary=Returns true if all of the named packages are present (or false if any are missing)
+# ub:args=<packages...>
+
+if ub-pkg-missing "$@"; then
+  exit 1
+fi
+
+exit 0
