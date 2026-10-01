@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# ub:summary=Returns true if any of the named commands are missing (or false if they're all there)
+# ub:args=<commands...>
+
+for cmd in "$@"; do
+  command -v "$cmd" &>/dev/null || exit 0
+done
+
+exit 1

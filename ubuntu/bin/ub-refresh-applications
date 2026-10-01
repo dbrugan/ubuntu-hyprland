@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# ub:summary=Ensure default .desktop, TUIs, and npx wrappers are installed
+
+mkdir -p ~/.local/share/icons/hicolor/48x48/apps/
+cp ~/.local/share/ubuntu-hyprland/applications/icons/*.png ~/.local/share/icons/hicolor/48x48/apps/
+gtk-update-icon-cache ~/.local/share/icons/hicolor &>/dev/null
+
+# Copy .desktop declarations
+mkdir -p ~/.local/share/applications
+cp ~/.local/share/ubuntu-hyprland/applications/*.desktop ~/.local/share/applications/
+cp ~/.local/share/ubuntu-hyprland/applications/hidden/*.desktop ~/.local/share/applications/
+
+if ub-cmd-present foot; then
+  cp ~/.local/share/ubuntu-hyprland/default/foot/foot.desktop ~/.local/share/applications/
+fi
+
+# Refresh the TUIs and npx wrappers
+bash "$UBUNTU_PATH/install/packaging/icons.sh"
+bash "$UBUNTU_PATH/install/packaging/tuis.sh"
+bash "$UBUNTU_PATH/install/packaging/npx.sh"
+
+update-desktop-database ~/.local/share/applications

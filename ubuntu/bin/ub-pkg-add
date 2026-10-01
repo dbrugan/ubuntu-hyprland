@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# ub:summary=Install Ubuntu packages if they are missing
+# ub:args=<packages...>
+# ub:examples=ub pkg add jq ripgrep
+# ub:requires-sudo=true
+
+# Add the named packages to the system if they're missing. Returns false if it couldn't be done.
+
+if ub-pkg-missing "$@"; then
+  sudo apt -y install "$@" || exit 1
+fi
+
+for pkg in "$@"; do
+  # Secondary check to handle states where dpkg doesn't actually register an error
+  if ! dpkg-query -W "$pkg" &>/dev/null; then
+    echo -e "\033[31mError: Package '$pkg' did not install\033[0m" >&2
+    exit 1
+  fi
+done
+
+exit 0
