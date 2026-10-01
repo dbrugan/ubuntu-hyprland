@@ -223,7 +223,6 @@ These pieces are intentional scaffolding, not breakage:
 
 - `install.sh` sources `login/all.sh` and `post-install/all.sh` which do not
   exist yet.
-- `install/config/all.sh` references ~28 stage scripts of which only
+- `install/config/all.sh` references ~29 stage scripts of which only
   `config.sh` exists.
-- `helpers/presentation.sh` expects `$UBUNTU_PATH/logo.txt`, which does not exist.
 - `config/` currently contains only the icon font, not the full config set.
