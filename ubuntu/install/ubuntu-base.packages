@@ -87,7 +87,6 @@ nss-mdns
 nvim
 obs-studio
 obsidian
-omarchy-walker
 pamixer
 pinta
 playerctl
@@ -143,5 +142,15 @@ xdg-terminal-exec
 xmlstarlet
 xournalpp
 yaru-icon-theme
-yay
 zoxide
+
+# --- pacstall ---
+# Pacscripts, installed via install/preflight/pacstall.sh and ub-pkg-pacstall-add.
+# pacstall replaces Arch's yay here.
+walker-bin
+elephant-bin
+elephant-providerlist-bin
+elephant-desktopapplications-bin
+elephant-files-bin
+elephant-clipboard-bin
+elephant-runner-bin
