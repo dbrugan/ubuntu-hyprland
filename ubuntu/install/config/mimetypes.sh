@@ -4,16 +4,16 @@ update-desktop-database ~/.local/share/applications
 # Open directories in file manager
 xdg-mime default org.gnome.Nautilus.desktop inode/directory
 
-# Open all images with imv
-xdg-mime default imv.desktop image/png
-xdg-mime default imv.desktop image/jpeg
-xdg-mime default imv.desktop image/gif
-xdg-mime default imv.desktop image/webp
-xdg-mime default imv.desktop image/bmp
-xdg-mime default imv.desktop image/tiff
+# Open all images with gthumb
+xdg-mime default org.gnome.gThumb.desktop image/png
+xdg-mime default org.gnome.gThumb.desktop image/jpeg
+xdg-mime default org.gnome.gThumb.desktop image/gif
+xdg-mime default org.gnome.gThumb.desktop image/webp
+xdg-mime default org.gnome.gThumb.desktop image/bmp
+xdg-mime default org.gnome.gThumb.desktop image/tiff
 
-# Open PDFs with the Document Viewer
-xdg-mime default org.gnome.Evince.desktop application/pdf
+# Open PDFs with GNOME Papers
+xdg-mime default org.gnome.Papers.desktop application/pdf
 
 # Use Chromium as the default browser
 xdg-settings set default-web-browser chromium.desktop
