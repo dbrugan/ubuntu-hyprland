@@ -20,10 +20,11 @@ xdg-mime default org.gnome.gThumb.desktop image/tiff
 # Open PDFs with GNOME Papers
 xdg-mime default org.gnome.Papers.desktop application/pdf
 
-# Use Chromium as the default browser
-xdg-settings set default-web-browser chromium.desktop
-xdg-mime default chromium.desktop x-scheme-handler/http
-xdg-mime default chromium.desktop x-scheme-handler/https
+# Use Firefox as the default browser. Chromium is not installed on Ubuntu by
+# default and is not part of this setup's package list.
+xdg-settings set default-web-browser firefox.desktop
+xdg-mime default firefox.desktop x-scheme-handler/http
+xdg-mime default firefox.desktop x-scheme-handler/https
 
 # Open video files with mpv
 xdg-mime default mpv.desktop video/mp4
