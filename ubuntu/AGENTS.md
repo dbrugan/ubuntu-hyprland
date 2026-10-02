@@ -29,8 +29,10 @@ All commands start with `ub-`. Prefixes indicate purpose:
 Use these instead of raw shell commands:
 
 - `ub-cmd-missing` / `ub-cmd-present` - check for commands
-- `ub-pkg-missing` / `ub-pkg-present` - check for packages
-- `ub-pkg-add` - install packages (handles both apt and pacstall)
+- `ub-pkg-missing` / `ub-pkg-present` - check for packages (checks both apt and
+  pacstall)
+- `ub-pkg-add` - install packages via apt
+- `ub-pkg-pacstall-add` - install pacscripts via pacstall
 
 # Config Structure
 
