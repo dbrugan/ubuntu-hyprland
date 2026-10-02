@@ -12,6 +12,7 @@ clang
 cups
 cups-browsed
 cups-filters
+desktop-file-utils
 dosfstools
 du-dust
 exfatprogs
@@ -94,6 +95,7 @@ wl-clipboard
 xdg-desktop-portal-gtk
 xdg-desktop-portal-hyprland
 xdg-terminal-exec
+xdg-utils
 yaru-theme-icon
 zoxide
 
