@@ -6,7 +6,8 @@ not an ISO: it is a manually installed (debootstrap + Limine + btrfs) Ubuntu LTS
 with a Hyprland/Quickshell desktop.
 
 - Follow Omarchy's conventions and setup as much as possible (snapper snapshots,
-  limine bootloader, quickshell bar/shell, themed configs).
+  limine bootloader, quickshell bar/shell), except where a deviation is recorded
+  below.
 - Use pacstall (custom pacscripts) for packages not available in Ubuntu repos.
 - Install entry point is `./boot.sh` in the repo; see `ubuntu/README.md`.
 
@@ -53,8 +54,8 @@ before porting or extending that area:
 The per-topic guides (`command-metadata.md`, `install-scripts.md`,
 `shell-dev.md`, `icon-font.md`, `acceptance-tests.md`,
 `visual-verification.md`) exist only from `v4.0.0` onward, under
-`agents/skills/`. This port follows its own conventions in `ubuntu/AGENTS.md`
-instead; do not add task-guide references to files absent from the pinned tag.
+`agents/skills/`. This port follows its own conventions in this file instead;
+do not add task-guide references to files absent from the pinned tag.
 
 # Style
 
@@ -131,9 +132,10 @@ Example:
 Use these instead of raw shell commands:
 
 - `ub-cmd-missing` / `ub-cmd-present` - check for commands
-- `ub-pkg-missing` / `ub-pkg-present` - check for packages (don't use these if you
-  can just use `ub-pkg-add`)
-- `ub-pkg-add` - install packages (handles both apt and pacstall)
+- `ub-pkg-missing` / `ub-pkg-present` - check for packages (checks both apt and
+  pacstall)
+- `ub-pkg-add` - install packages via apt
+- `ub-pkg-pacstall-add` - install pacscripts via pacstall
 - `ub-notification-send` - send desktop notifications; do not call `notify-send` directly
 
 Commands installed by the default package set are runtime invariants. Invoke
@@ -156,6 +158,21 @@ direct package-manager behavior is required.
 - TUI/npx installers (`ub-tui-install`, `ub-npx-install`) write `.desktop` files
   and wrappers under `~/.local/`; keep their interactive vs
   positional-argument behavior consistent.
+
+# Browsers
+
+Firefox is installed from Mozilla's apt repository, not from Ubuntu's archive.
+Ubuntu ships `firefox` as a snap-transition package (`1:1snap1`), so a plain
+`apt install firefox` yields the snap.
+
+- `install/preflight/mozilla.sh` adds `packages.mozilla.org`, following Mozilla's
+  own instructions: keyring import, signing-key fingerprint check, a deb822
+  `.sources` file, an apt pin, then `apt update`.
+- That pin is load-bearing, not decoration. Ubuntu's transitional package
+  carries epoch 1, which outranks Mozilla's unversioned build on raw version
+  comparison, so without a pin apt selects the snap wrapper.
+- Adding the repository is a preflight concern; adding the package itself is a
+  base-list concern (`install/ubuntu-base.packages`). Keep them separate.
 
 # Privileged Commands
 
@@ -183,6 +200,20 @@ instead.
   families (`dark_*`, `light_*`, `bright_*`), and named colors
   (`red`/`green`/`yellow`/`blue`/`magenta`/`cyan`/`orange`/`brown` plus
   `bright_*` variants). The old `color0-15` palette is legacy.
+
+# Theming
+
+Omarchy's theming is a deliberate deviation and is not ported. Do not port
+`omarchy/install/config/theme.sh`, the `omarchy-theme-*` command family, or
+anything else that reads upstream's `themes/` directory.
+
+- Upstream's `theme.sh` carries Chromium-specific setup: it creates
+  `/etc/chromium/policies/managed` and clears `~/.config/chromium/SingletonLock`.
+  Porting it verbatim would drag in a browser this project does not use.
+- Any theming this project does have is our own, described under
+  `# Config Structure`: `themes/*/colors.toml` with semantic color names, and
+  `default/themed/*.tpl` templates. Upstream's `color0-15` palette and its
+  theme-selection machinery do not apply.
 
 # Refresh Pattern
 
@@ -226,3 +257,4 @@ These pieces are intentional scaffolding, not breakage:
 - `install/config/all.sh` references ~29 stage scripts of which only
   `config.sh` exists.
 - `config/` currently contains only the icon font, not the full config set.
+- `install/config/theme.sh` is intentionally not ported; see `# Theming`.
