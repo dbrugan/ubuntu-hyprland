@@ -1,3 +1,8 @@
+# Ubuntu's neovim package ships no desktop entry, so supply our own before
+# refreshing the database the xdg-mime calls below rely on.
+mkdir -p ~/.local/share/applications
+cp "$UBUNTU_PATH/default/nvim/nvim.desktop" ~/.local/share/applications/
+
 ub-refresh-applications
 update-desktop-database ~/.local/share/applications
 
