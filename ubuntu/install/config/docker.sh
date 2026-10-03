@@ -2,7 +2,7 @@
 # - limit log size to avoid running out of disk
 # - use host's DNS resolver
 if ! ub-cmd-present docker; then
-  echo "Docker is not installed. Run ub-docker-install to configure it."
+  echo "Docker is not installed. Docker should be installed via packaging to configure it."
   exit 0
 fi
 
