@@ -3,7 +3,7 @@ tee ~/.XCompose >/dev/null <<EOF
 # Run ub-restart-xcompose to apply changes
 
 # Include fast emoji access
-include "%H/.local/share/ubuntu-hyprland/default/xcompose"
+include "$UBUNTU_PATH/default/xcompose"
 
 # Identification
 <Multi_key> <space> <n> : "$UBUNTU_USER_NAME"

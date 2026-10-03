@@ -1,4 +1,4 @@
 mkdir -p ~/.config
-cp -R ~/.local/share/ubuntu-hyprland/config/* ~/.config/
+cp -R "$UBUNTU_PATH"/config/* ~/.config/
 
-cp ~/.local/share/ubuntu-hyprland/default/bashrc ~/.bashrc
+cp "$UBUNTU_PATH"/default/bashrc ~/.bashrc
