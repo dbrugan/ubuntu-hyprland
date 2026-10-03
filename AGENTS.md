@@ -258,3 +258,9 @@ These pieces are intentional scaffolding, not breakage:
   `config.sh` exists.
 - `config/` currently contains only the icon font, not the full config set.
 - `install/config/theme.sh` is intentionally not ported; see `# Theming`.
+- `install/packaging/webapps.sh` and the `omarchy-webapp-*` helpers are not
+  ported (webapps are intentionally omitted from this setup).
+- The hardware-specific packaging scripts (`asus-rog.sh`, `framework16.sh`,
+  `surface.sh`, `dell-xps-touchpad-haptics.sh`) and their `ub-hw-*`
+  detection helpers are not ported; packages they depend on are not available
+  in Ubuntu 26.04.
