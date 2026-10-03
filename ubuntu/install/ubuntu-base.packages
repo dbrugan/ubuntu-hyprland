@@ -100,6 +100,7 @@ xdg-utils
 yaru-theme-icon
 zoxide
 
+mise
 # --- pacstall ---
 # Pacscripts, installed via install/preflight/pacstall.sh and ub-pkg-pacstall-add.
 # pacstall replaces Arch's yay here.
