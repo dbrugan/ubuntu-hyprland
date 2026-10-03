@@ -4,4 +4,5 @@ run_logged $UBUNTU_INSTALL/preflight/show-env.sh
 run_logged $UBUNTU_INSTALL/preflight/apt.sh
 run_logged $UBUNTU_INSTALL/preflight/pacstall.sh
 run_logged $UBUNTU_INSTALL/preflight/mozilla.sh
+run_logged $UBUNTU_INSTALL/preflight/docker.sh
 run_logged $UBUNTU_INSTALL/preflight/first-run-mode.sh
