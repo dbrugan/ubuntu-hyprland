@@ -260,6 +260,11 @@ These pieces are intentional scaffolding, not breakage:
 - `install/config/theme.sh` is intentionally not ported; see `# Theming`.
 - `install/packaging/webapps.sh` and the `omarchy-webapp-*` helpers are not
   ported (webapps are intentionally omitted from this setup).
+- The login stage does not set up hibernation (no swap). Hibernation is
+  intentionally omitted to match the target spec (no swap, zram enabled).
+- Limine boot entry regeneration for new kernels/snapshots is not automated on
+  Ubuntu in this port; the hand-built Limine install must be maintained
+  manually after kernel upgrades.
 - The hardware-specific packaging scripts (`asus-rog.sh`, `framework16.sh`,
   `surface.sh`, `dell-xps-touchpad-haptics.sh`) and their `ub-hw-*`
   detection helpers are not ported; packages they depend on are not available
