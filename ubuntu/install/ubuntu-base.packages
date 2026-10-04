@@ -36,6 +36,7 @@ git
 gnome-calculator
 gnome-disk-utility
 gnome-keyring
+libpam-gnome-keyring
 gnome-sushi
 gnome-themes-extra
 grim
