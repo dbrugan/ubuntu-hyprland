@@ -242,7 +242,17 @@ Automated tests are not ported yet. The Omarchy model to follow:
 
 # Git
 
-- Commit messages follow the gitmoji convention (gitmoji.dev); prefix each
+- Commit messages follow the Conventional Commits specification (conventionalcommits.org) which is structured as follows:
+
+```
+<type>[optional scope]: <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+- before <type> there should be an emoji following gitmoji convention (gitmoji.dev); prefix each
   commit with a relevant emoji (e.g. `✨`, `♻️`, `🐛`, `🔧`).
 - Commits should be atomic: include only one coherent change or fix, and do not
   mix unrelated work.
@@ -252,8 +262,8 @@ Automated tests are not ported yet. The Omarchy model to follow:
 
 These pieces are intentional scaffolding, not breakage:
 
-- `install.sh` sources `login/all.sh` and `post-install/all.sh` which do not
-  exist yet.
+- `install.sh` sources `login/all.sh` and `post-install/all.sh` (login stage is
+  partially wired; post-install remains minimal/stubbed).
 - `install/config/all.sh` references ~29 stage scripts of which only
   `config.sh` exists.
 - `config/` currently contains only the icon font, not the full config set.
