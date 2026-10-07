@@ -55,6 +55,7 @@ jq
 lazygit
 less
 libnss-mdns
+libnotify-bin
 libsecret-1-0
 libyaml-0-2
 llvm
@@ -68,10 +69,12 @@ obs-studio
 papers
 pciutils
 plocate
+playerctl
 plymouth
 policykit-1-gnome
 power-profiles-daemon
 printer-driver-cups-pdf
+pulseaudio-utils
 python3
 python3-gi
 python3-nautilus
@@ -82,12 +85,15 @@ ruby
 rustc
 sddm
 software-properties-common
+socat
+slurp
 starship
 swaybg
 swayosd
 system-config-printer
 thunderbird
 tmux
+tesseract-ocr
 typora
 ufw
 unzip
