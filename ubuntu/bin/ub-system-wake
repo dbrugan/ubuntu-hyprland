@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# ub:summary=Wake displays and restore brightness after idle
+# ub:group=system
+# ub:name=wake
+# ub:examples=ub system wake
+
+ub-brightness-display on
+ub-brightness-keyboard restore
