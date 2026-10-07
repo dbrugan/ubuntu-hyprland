@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# ub:summary=Launch the audio controls TUI (provided by wiremix).
+
+exec ub-launch-or-focus-tui wiremix

@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# ub:summary=Launch the bluetooth controls TUI (provided by bluetui).
+
+rfkill unblock bluetooth
+exec ub-launch-or-focus-tui bluetui

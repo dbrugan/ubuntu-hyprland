@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# ub:summary=Launch the default editor as set by $EDITOR, falling back to nvim.
+# ub:args=<path>
+
+ub-cmd-present "$EDITOR" || EDITOR=nvim
+
+case "$EDITOR" in
+nvim | vim | nano | micro | hx | helix | fresh)
+  exec ub-launch-tui "$EDITOR" "$@"
+  ;;
+*)
+  exec setsid uwsm-app -- "$EDITOR" "$@"
+  ;;
+esac

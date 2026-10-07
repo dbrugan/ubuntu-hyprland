@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# ub:summary=Launch the wifi controls (provided by the impala TUI).
+
+rfkill unblock wifi
+exec ub-launch-or-focus-tui impala

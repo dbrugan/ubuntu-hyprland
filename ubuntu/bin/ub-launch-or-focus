@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# ub:summary=Launch an app or focus an existing window matching a pattern
+# ub:args=<window-pattern> [launch-command]
+
+if (($# == 0)); then
+  echo "Usage: $(basename "$0") [window-pattern] [launch-command]"
+  exit 1
+fi
+
+WINDOW_PATTERN="$1"
+LAUNCH_COMMAND="${2:-"uwsm-app -- $WINDOW_PATTERN"}"
+# Some clients report null for class or title, so coalesce to "" before matching.
+WINDOW_ADDRESS=$(hyprctl clients -j | jq -r --arg p "$WINDOW_PATTERN" '.[]|select(((.class // "")|test("\\b" + $p + "\\b";"i")) or ((.title // "")|test("\\b" + $p + "\\b";"i")))|.address' | head -n1)
+
+if [[ -n $WINDOW_ADDRESS ]]; then
+  hyprctl dispatch focuswindow "address:$WINDOW_ADDRESS"
+else
+  eval exec setsid $LAUNCH_COMMAND
+fi
