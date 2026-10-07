@@ -92,6 +92,7 @@ starship
 swaybg
 swayosd
 system-config-printer
+python3-terminaltexteffects
 thunderbird
 tmux
 tesseract-ocr
@@ -135,7 +136,6 @@ hyprland-preview-share-picker
 lazydocker-bin
 localsend-deb
 obsidian-deb
-python3-terminaltexteffects
 satty-bin
 ttf-jetbrains-mono-nerd
 wiremix
