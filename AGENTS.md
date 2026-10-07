@@ -262,14 +262,30 @@ Automated tests are not ported yet. The Omarchy model to follow:
 
 These pieces are intentional scaffolding, not breakage:
 
-- `install.sh` sources `login/all.sh` and `post-install/all.sh` (login stage is
-  partially wired; post-install remains minimal/stubbed).
-- `install/config/all.sh` references ~29 stage scripts of which only
-  `config.sh` exists.
-- `config/` currently contains only the icon font, not the full config set.
-- `install/config/theme.sh` is intentionally not ported; see `# Theming`.
-- `install/packaging/webapps.sh` and the `omarchy-webapp-*` helpers are not
-  ported (webapps are intentionally omitted from this setup).
+- `install.sh` sources `login/all.sh`, which is still the pre-port scaffolding:
+  it references `$OMARCHY_INSTALL` rather than `$UBUNTU_INSTALL`, and four of
+  the five leaf scripts it lists still carry `omarchy-*` command calls and
+  `$OMARCHY_PATH` paths. The `post-install` stage is ported.
+- `install/login/` is not tracked yet, and neither is `ubuntu/boot.sh`, which
+  is the documented install entry point per the error message in `install.sh`.
+  `ubuntu/config/omarchy.ttf` is untracked for the same reason.
+- `config/` holds the ported Hyprland tree (`config/hypr/`) plus the icon
+  font. The rest of upstream's `config/` is not ported.
+- Theming is intentionally not ported; see `# Theming`. `config/all.sh` does
+  not reference a `theme.sh`.
+- `install/packaging/webapps.sh` and the `ub-launch-webapp` /
+  `ub-launch-or-focus-webapp` helpers are not ported (webapps are
+  intentionally omitted from this setup).
+- `install/config/hardware/nvidia.sh` writes its NVIDIA environment block to
+  `~/.config/hypr/envs.conf`, which the ported `hyprland.conf` does not
+  source, so those variables never take effect. Upstream is mid-migration on
+  this: `config/hypr/envs.conf` was deleted upstream in commit `638e35fc` in
+  favour of `~/.config/uwsm/env`, and `nvidia.sh` was never updated to follow.
+  Fix is queued, not yet applied.
+- `install/config/config.sh` copies `config/` over `~/.config/` unconditionally,
+  so re-running the installer discards hand edits to `~/.config/hypr/*.conf`.
+  Upstream has the same line and answers it with `omarchy-refresh-config`,
+  which is not ported.
 - The login stage does not set up hibernation (no swap). Hibernation is
   intentionally omitted to match the target spec (no swap, zram enabled).
 - Limine boot entry regeneration for new kernels/snapshots is not automated on
