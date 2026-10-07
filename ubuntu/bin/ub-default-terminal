@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# ub:summary=Set the default terminal used by xdg-terminal-exec
+# ub:args=[alacritty]
+# ub:examples=ub default terminal alacritty
+
+if (($# == 0)); then
+  grep -vE '^($|#)' ~/.config/xdg-terminals.list 2>/dev/null | head -n 1
+  exit 0
+fi
+
+case "$1" in
+alacritty) desktop_id="Alacritty.desktop"; name="Alacritty" ;;
+*)
+  echo "Usage: $(basename "$0") <alacritty>" >&2
+  exit 1
+  ;;
+esac
+
+cat >~/.config/xdg-terminals.list <<LIST
+# Terminal emulator preference order for xdg-terminal-exec
+# The first found and valid terminal will be used
+$desktop_id
+LIST
+
+ub-notification-send "" "$name is now the default terminal"

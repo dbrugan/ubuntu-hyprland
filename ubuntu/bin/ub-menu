@@ -1,0 +1,248 @@
+#!/bin/bash
+
+# ub:summary=Launch the menu, or take a parameter to jump straight to a submenu.
+
+# Set to true when going directly to a submenu, so we exit instead of
+# returning to the parent.
+BACK_TO_EXIT=false
+
+back_to() {
+  local parent_menu="$1"
+
+  if [[ $BACK_TO_EXIT == "true" ]]; then
+    exit 0
+  elif [[ -n $parent_menu ]]; then
+    "$parent_menu"
+  else
+    show_main_menu
+  fi
+}
+
+toggle_existing_menu() {
+  if pgrep -f "walker.*--dmenu" >/dev/null; then
+    walker --close >/dev/null 2>&1
+    exit 0
+  fi
+}
+
+menu() {
+  local prompt="$1"
+  local options="$2"
+  local extra="$3"
+  local preselect="$4"
+
+  read -r -a args <<<"$extra"
+
+  if [[ -n $preselect ]]; then
+    local index
+    index=$(echo -e "$options" | grep -nxF "$preselect" | cut -d: -f1)
+    if [[ -n $index ]]; then
+      args+=("-c" "$index")
+    fi
+  fi
+
+  echo -e "$options" | ub-launch-walker --dmenu --width 295 --minheight 1 --maxheight 630 -p "$prompt…" "${args[@]}" 2>/dev/null
+}
+
+terminal() {
+  xdg-terminal-exec --app-id=org.omarchy.terminal "$@"
+}
+
+present_terminal() {
+  ub-launch-tui "$1"
+}
+
+open_in_editor() {
+  ub-notification-send "" "Editing config file" "$1"
+  ub-launch-editor "$1"
+}
+
+show_learn_menu() {
+  case $(menu "Learn" "  Keybindings\n  Hyprland\n  Neovim\n  Bash") in
+  *Keybindings*) ub-menu-keybindings ;;
+  *Hyprland*) ub-launch-browser "https://wiki.hypr.land/" ;;
+  *Bash*) ub-launch-browser "https://devhints.io/bash" ;;
+  *Neovim*) ub-launch-browser "https://www.lazyvim.org/keymaps" ;;
+  *) show_main_menu ;;
+  esac
+}
+
+show_trigger_menu() {
+  case $(menu "Trigger" "󰔛  Reminder\n  Capture\n󰧸  Transcode\n󰔎  Toggle\n  Hardware") in
+  *Reminder*) show_reminder_menu ;;
+  *Capture*) show_capture_menu ;;
+  *Transcode*) ub-transcode || back_to show_trigger_menu ;;
+  *Toggle*) show_toggle_menu ;;
+  *Hardware*) show_hardware_menu ;;
+  *) show_main_menu ;;
+  esac
+}
+
+show_reminder_menu() {
+  case $(menu "Reminder" "󰔛  Set one\n󰔛  Show all\n󰔛  Clear all") in
+  *Set*) show_custom_reminder_input ;;
+  *"Show all"*) ub-reminder show ;;
+  *"Clear all"*) ub-reminder clear ;;
+  *) back_to show_trigger_menu ;;
+  esac
+}
+
+show_custom_reminder_input() {
+  local minutes
+  local message
+
+  minutes=$(menu "Minutes" "5\n10\n15\n30\n60\n120")
+  [[ -z $minutes ]] && { back_to show_reminder_menu; return; }
+
+  message=$(menu "Message" "Check the oven\nStand up and stretch\nTake medication\nWater the plants\n")
+  [[ -z $message ]] && message="Your ${minutes} minutes are up"
+
+  ub-reminder "$minutes" "$message"
+}
+
+show_capture_menu() {
+  case $(menu "Capture" "  Screenshot\n  Text Extraction") in
+  *Screenshot*) ub-capture-screenshot ;;
+  *"Text Extraction"*) ub-capture-text-extraction ;;
+  *) back_to show_trigger_menu ;;
+  esac
+}
+
+show_hardware_menu() {
+  case $(menu "Hardware" "  Displays\n  Keyboard\n  Lock") in
+  *Displays*) ub-hyprland-monitor-scaling-cycle ;;
+  *Keyboard*) ub-toggle-touchpad ;;
+  *Lock*) ub-system-lock ;;
+  *) show_main_menu ;;
+  esac
+}
+
+show_toggle_menu() {
+  local options=""
+  local choice
+
+  ub-hyprland-toggle-enabled window-no-gaps && options+="  Window gaps\n"
+  ub-hyprland-toggle-enabled single-window-aspect-ratio && options+="  Single-window square aspect\n"
+  ub-toggle-enabled waybar-off && options+="  Top bar\n"
+
+  if [[ -z $options ]]; then
+    options="  Window gaps\n  Single-window square aspect\n  Top bar\n"
+  fi
+
+  choice=$(menu "Toggle" "$options")
+  case "$choice" in
+  *"Window gaps"*) ub-hyprland-window-gaps-toggle ;;
+  *"Single-window"*) ub-hyprland-window-single-square-aspect-toggle ;;
+  *"Top bar"*) ub-toggle-waybar ;;
+  *) show_main_menu ;;
+  esac
+}
+
+show_setup_menu() {
+  local options="  Audio\n  Wifi\n  Bluetooth\n  Power\n  Monitors\n  Keybindings\n  Input\n  Defaults\n  Config"
+
+  case $(menu "Setup" "$options") in
+  *Audio*) ub-launch-audio ;;
+  *Wifi*) ub-launch-wifi ;;
+  *Bluetooth*) ub-launch-bluetooth ;;
+  *Power*) show_setup_power_menu ;;
+  *Monitors*) open_in_editor ~/.config/hypr/monitors.conf ;;
+  *Keybindings*) open_in_editor ~/.config/hypr/bindings.conf ;;
+  *Input*) open_in_editor ~/.config/hypr/input.conf ;;
+  *Defaults*) show_setup_default_menu ;;
+  *Config*) ub-launch-walker ;;
+  *) show_main_menu ;;
+  esac
+}
+
+show_setup_power_menu() {
+  local profile
+
+  profile=$(menu "Power Profile" "$(ub-powerprofiles-list)" "" "$(powerprofilesctl get)")
+
+  if [[ $profile == "CNCLD" || -z $profile ]]; then
+    back_to show_setup_menu
+  else
+    powerprofilesctl set "$profile"
+  fi
+}
+
+show_setup_default_menu() {
+  case $(menu "Default" "  Browser\n  Terminal\n  Editor") in
+  *Browser*) show_setup_default_browser_menu ;;
+  *Terminal*) show_setup_default_terminal_menu ;;
+  *Editor*) show_setup_default_editor_menu ;;
+  *) show_setup_menu ;;
+  esac
+}
+
+show_setup_default_browser_menu() {
+  local current
+  current=$(ub-default-browser)
+
+  case $(menu "Default Browser" "  Firefox" "" "$current") in
+  *Firefox*) ub-default-browser firefox ;;
+  *) show_setup_default_menu ;;
+  esac
+}
+
+show_setup_default_terminal_menu() {
+  case $(menu "Default Terminal" "  Alacritty" "" "$(ub-default-terminal)") in
+  *Alacritty*) ub-default-terminal alacritty ;;
+  *) show_setup_default_menu ;;
+  esac
+}
+
+show_setup_default_editor_menu() {
+  case $(menu "Default Editor" "  Neovim" "" "$(ub-default-editor)") in
+  *Neovim*) ub-default-editor nvim ;;
+  *) show_setup_default_menu ;;
+  esac
+}
+
+show_system_menu() {
+  case $(menu "System" "  Lock\n  Reboot\n  Shutdown") in
+  *Lock*) ub-system-lock ;;
+  *Reboot*) systemctl reboot ;;
+  *Shutdown*) systemctl poweroff ;;
+  *) show_main_menu ;;
+  esac
+}
+
+show_main_menu() {
+  go_to_menu "$(menu "Go" "󰀻  Apps\n󰧑  Learn\n󱓞  Trigger\n  Setup\n  System")"
+}
+
+go_to_menu() {
+  case "${1,,}" in
+  *apps*) walker -p "Launch…" ;;
+  *learn*) show_learn_menu ;;
+  *trigger*) show_trigger_menu ;;
+  *reminder-set*) show_custom_reminder_input ;;
+  *reminder*) show_reminder_menu ;;
+  *capture*) show_capture_menu ;;
+  *toggle*) show_toggle_menu ;;
+  *hardware*) show_hardware_menu ;;
+  *power*) show_setup_power_menu ;;
+  *setup*) show_setup_menu ;;
+  *system*) show_system_menu ;;
+  esac
+}
+
+# Allow user extensions and overrides
+USER_EXTENSIONS="$HOME/.config/ubuntu/extensions/menu.sh"
+[[ -f $USER_EXTENSIONS ]] && source "$USER_EXTENSIONS"
+
+# If a submenu was requested directly, set the flag so backing out exits.
+if (($# > 0)); then
+  BACK_TO_EXIT=true
+fi
+
+case "${1:-}" in
+system) show_system_menu ;;
+setup) show_setup_menu ;;
+toggle) show_toggle_menu ;;
+hardware) show_hardware_menu ;;
+capture) show_capture_menu ;;
+*) show_main_menu ;;
+esac

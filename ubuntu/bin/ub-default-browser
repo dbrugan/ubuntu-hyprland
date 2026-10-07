@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# ub:summary=Set the default browser for XDG handlers
+# ub:args=[firefox]
+# ub:examples=ub default browser firefox
+
+if (($# == 0)); then
+  xdg-settings get default-web-browser
+  exit 0
+fi
+
+case "$1" in
+firefox) desktop_id="firefox.desktop"; name="Firefox"; glyph="󰈹" ;;
+*)
+  echo "Usage: $(basename "$0") <firefox>" >&2
+  exit 1
+  ;;
+esac
+
+xdg-settings set default-web-browser "$desktop_id"
+xdg-mime default "$desktop_id" x-scheme-handler/http
+xdg-mime default "$desktop_id" x-scheme-handler/https
+xdg-mime default "$desktop_id" text/html
+
+ub-notification-send "$glyph" "$name is now the default browser"

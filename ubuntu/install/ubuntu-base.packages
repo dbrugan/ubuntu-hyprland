@@ -57,6 +57,7 @@ less
 libnss-mdns
 libnotify-bin
 libsecret-1-0
+libxkbcommon-tools
 libyaml-0-2
 llvm
 luarocks

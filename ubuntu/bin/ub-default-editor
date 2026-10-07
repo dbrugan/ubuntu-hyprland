@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# ub:summary=Set the default editor for $EDITOR
+# ub:args=[nvim]
+# ub:examples=ub default editor | ub default editor nvim
+
+if (($# == 0)); then
+  sed -n 's/^export EDITOR=//p' ~/.config/uwsm/default 2>/dev/null | head -n 1
+  exit 0
+fi
+
+case "$1" in
+nvim) editor="nvim"; name="Neovim"; glyph="󰚩" ;;
+*)
+  echo "Usage: $(basename "$0") <nvim>" >&2
+  exit 1
+  ;;
+esac
+
+if [[ ! -f ~/.config/uwsm/default ]]; then
+  echo "No ~/.config/uwsm/default to update" >&2
+  exit 1
+fi
+
+sed -i "s/^export EDITOR=.*/export EDITOR=$editor/" ~/.config/uwsm/default
+
+export EDITOR="$editor"
+ub-notification-send "$glyph" "$name is now the default editor" "      Effective after logging out"

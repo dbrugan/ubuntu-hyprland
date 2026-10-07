@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# ub:summary=Finish the installation with items that can only be done after logging in.
+# ub:requires-sudo=true
+
+set -e
+
+FIRST_RUN_MODE=~/.local/state/ubuntu-hyprland/first-run.mode
+
+if [[ -f $FIRST_RUN_MODE ]]; then
+  rm -f "$FIRST_RUN_MODE"
+
+  # Remove the temporary passwordless-sudo allowlist preflight/first-run-mode.sh wrote.
+  # It is only needed for the steps above, so it goes away on the first login.
+  sudo rm -f /etc/sudoers.d/first-run
+fi
