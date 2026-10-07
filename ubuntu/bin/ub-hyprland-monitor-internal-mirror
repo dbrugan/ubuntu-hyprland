@@ -1,0 +1,59 @@
+#!/bin/bash
+
+# ub:summary=Enable, disable, toggle, or recover mirroring the internal display to an external monitor
+# ub:args=<on|off|toggle|recover>
+
+TOGGLE="internal-monitor-mirror"
+TOGGLE_FLAG="$HOME/.local/state/ubuntu/toggles/hypr/$TOGGLE.conf"
+DISABLE_TOGGLE="internal-monitor-disable"
+
+# Get names dynamically
+INTERNAL=$(hyprctl monitors -j | jq -r '.[] | select(.name | contains("eDP")).name' | head -n 1)
+# Get the first available external monitor
+EXTERNAL=$(hyprctl monitors -j | jq -r '.[] | select(.name | contains("eDP") | not).name' | head -n 1)
+
+enable() {
+  if [[ -z "$EXTERNAL" ]]; then
+    ub-notification-send "" "󰍹    No external monitors found for mirror"
+    exit 1
+  fi
+
+  if [[ -z "$INTERNAL" ]]; then
+    ub-notification-send "" "󰍹    No laptop monitor found to mirror"
+    exit 1
+  fi
+
+  if ub-hyprland-toggle-enabled "$DISABLE_TOGGLE"; then
+    ub-hyprland-toggle "$DISABLE_TOGGLE"
+  fi
+
+  if ub-hyprland-toggle-disabled "$TOGGLE"; then
+    mkdir -p "$(dirname "$TOGGLE_FLAG")"
+    echo "monitor=$EXTERNAL, preferred, auto, 1, mirror, $INTERNAL" > "$TOGGLE_FLAG"
+    ub-notification-send "" "󰍹    Mirroring enabled ($EXTERNAL)"
+    hyprctl reload
+  fi
+}
+
+disable() {
+  if ub-hyprland-toggle-enabled "$TOGGLE"; then
+    ub-hyprland-toggle --disabled-notification "󰍹    Extended mode restored" "$TOGGLE"
+  fi
+}
+
+recover() {
+  if ! ub-hw-external-monitors && ub-hyprland-toggle-enabled "$TOGGLE"; then
+    ub-hyprland-toggle "$TOGGLE"
+  fi
+}
+
+case "$1" in
+  on) enable ;;
+  off) disable ;;
+  toggle) if ub-hyprland-toggle-enabled "$TOGGLE"; then disable; else enable; fi ;;
+  recover) recover ;;
+  *)
+    echo "Usage: $(basename "$0") {on|off|toggle|recover}" >&2
+    exit 1
+    ;;
+esac

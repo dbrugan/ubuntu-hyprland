@@ -1,0 +1,47 @@
+#!/bin/bash
+
+# ub:summary=Enable, disable, toggle, or recover the internal laptop display
+# ub:args=<on|off|toggle|recover>
+
+TOGGLE="internal-monitor-disable"
+TOGGLE_FLAG="$HOME/.local/state/ubuntu/toggles/hypr/$TOGGLE.conf"
+MIRROR_TOGGLE="internal-monitor-mirror"
+
+# Get internal monitor name dynamically
+INTERNAL=$(hyprctl monitors -j | jq -r '.[] | select(.name | contains("eDP")).name' | head -n 1)
+
+enable() {
+  if ub-hyprland-toggle-enabled "$TOGGLE"; then
+    ub-hyprland-toggle --disabled-notification "󰍹    Laptop display enabled" "$TOGGLE"
+  fi
+}
+
+disable() {
+  if ! ub-hw-external-monitors; then
+    ub-notification-send "" "󰍹    Can't disable the only active display"
+    exit 1
+  fi
+  if ub-hyprland-toggle-disabled "$TOGGLE" && ub-hyprland-toggle-disabled "$MIRROR_TOGGLE"; then
+    mkdir -p "$(dirname "$TOGGLE_FLAG")"
+    echo "monitor=$INTERNAL,disable" >"$TOGGLE_FLAG"
+    ub-notification-send "" "󰍹    Laptop display disabled"
+    hyprctl reload
+  fi
+}
+
+recover() {
+  if ! ub-hw-external-monitors && ub-hyprland-toggle-enabled "$TOGGLE"; then
+    ub-hyprland-toggle "$TOGGLE"
+  fi
+}
+
+case "$1" in
+  on) enable ;;
+  off) disable ;;
+  toggle) if ub-hyprland-toggle-enabled "$TOGGLE"; then enable; else disable; fi ;;
+  recover) recover ;;
+  *)
+    echo "Usage: $(basename "$0") {on|off|toggle|recover}" >&2
+    exit 1
+    ;;
+esac
