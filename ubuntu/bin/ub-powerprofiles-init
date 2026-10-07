@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# ub:summary=Set the correct power profile on boot based on current AC/battery state.
+
+if ub-battery-present && ! ub-ac-present; then
+  ub-powerprofiles-set battery
+else
+  ub-powerprofiles-set ac
+fi
