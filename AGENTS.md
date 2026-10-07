@@ -262,13 +262,9 @@ Automated tests are not ported yet. The Omarchy model to follow:
 
 These pieces are intentional scaffolding, not breakage:
 
-- `install.sh` sources `login/all.sh`, which is still the pre-port scaffolding:
-  it references `$OMARCHY_INSTALL` rather than `$UBUNTU_INSTALL`, and four of
-  the five leaf scripts it lists still carry `omarchy-*` command calls and
-  `$OMARCHY_PATH` paths. The `post-install` stage is ported.
-- `install/login/` is not tracked yet, and neither is `ubuntu/boot.sh`, which
-  is the documented install entry point per the error message in `install.sh`.
-  `ubuntu/config/omarchy.ttf` is untracked for the same reason.
+- `install/login/` is ported: plymouth, default-keyring, and sddm run from
+  `all.sh`. Upstream's `hibernation.sh` and `limine-snapper.sh` are
+  deliberately not ported; see the bullets below.
 - `config/` holds the ported Hyprland tree (`config/hypr/`) plus the icon
   font. The rest of upstream's `config/` is not ported.
 - Theming is intentionally not ported; see `# Theming`. `config/all.sh` does
@@ -286,11 +282,19 @@ These pieces are intentional scaffolding, not breakage:
   so re-running the installer discards hand edits to `~/.config/hypr/*.conf`.
   Upstream has the same line and answers it with `omarchy-refresh-config`,
   which is not ported.
-- The login stage does not set up hibernation (no swap). Hibernation is
+- The login stage does not set up hibernation. Upstream's `hibernation.sh` is
+  not ported: it calls `omarchy-hibernation-setup`, and hibernation is
   intentionally omitted to match the target spec (no swap, zram enabled).
-- Limine boot entry regeneration for new kernels/snapshots is not automated on
-  Ubuntu in this port; the hand-built Limine install must be maintained
-  manually after kernel upgrades.
+- Upstream's `login/limine-snapper.sh` is not ported. It is built on Arch boot
+  plumbing — `mkinitcpio` and its `/etc/mkinitcpio.conf.d` drop-ins, pacman
+  transaction hooks, `/usr/share/libalpm`, `arch-limine` ESP paths, and
+  `default/limine/` assets this repo does not carry. `mkinitcpio` and `limine`
+  have no 26.04 package. Bootloader setup stays manual on this port, and the
+  hand-built Limine install must be maintained by hand after kernel upgrades.
+  Porting it properly needs an `initramfs-tools` equivalent plus Limine
+  assets; treat it as its own piece of work.
+- `install/default/snapper/root` is carried but currently unreferenced, since
+  it was only installed by the unported `limine-snapper.sh`.
 - The hardware-specific packaging scripts (`asus-rog.sh`, `framework16.sh`,
   `surface.sh`, `dell-xps-touchpad-haptics.sh`) and their `ub-hw-*`
   detection helpers are not ported; packages they depend on are not available
