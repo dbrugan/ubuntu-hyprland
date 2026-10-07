@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# ub:summary=Toggle notification do-not-disturb mode
+
+makoctl mode -t do-not-disturb
+
+if makoctl mode | grep -q 'do-not-disturb'; then
+  ub-notification-send "" "󰂛    Silenced notifications"
+else
+  ub-notification-send "" "󰂚    Enabled notifications"
+fi
+
+pkill -RTMIN+10 waybar

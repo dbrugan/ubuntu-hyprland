@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# ub:summary=Toggle hypridle idle locking
+
+if pgrep -x hypridle >/dev/null; then
+  pkill -x hypridle
+  ub-notification-send "" "󱫖    Stop locking computer when idle"
+else
+  uwsm-app -- hypridle >/dev/null 2>&1 &
+  ub-notification-send "" "󱫖    Now locking computer when idle"
+fi
+
+pkill -RTMIN+9 waybar
