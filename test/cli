@@ -1,0 +1,230 @@
+#!/bin/bash
+
+set -euo pipefail
+
+ROOT=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
+UBUNTU="$ROOT/ubuntu"
+CLI="$UBUNTU/bin/ub"
+TMPDIR=""
+
+export PATH="$UBUNTU/bin:$PATH"
+
+pass() {
+  printf 'ok - %s\n' "$1"
+}
+
+fail() {
+  printf 'not ok - %s\n' "$1" >&2
+  exit 1
+}
+
+assert_output_contains() {
+  local description="$1"
+  local output="$2"
+  local expected="$3"
+
+  if [[ $output != *"$expected"* ]]; then
+    printf 'Expected output to contain: %s\n' "$expected" >&2
+    printf 'Actual output:\n%s\n' "$output" >&2
+    fail "$description"
+  fi
+
+  pass "$description"
+}
+
+cleanup() {
+  [[ -n $TMPDIR && -d $TMPDIR ]] && rm -rf "$TMPDIR"
+}
+trap cleanup EXIT
+
+output=$("$CLI" --help)
+assert_output_contains "main help renders" "$output" "Ubuntu command center"
+assert_output_contains "main help includes hardware group" "$output" "hw"
+assert_output_contains "main help includes package group" "$output" "pkg"
+if grep -Eq '^  [a-z0-9-]+[[:space:]].*\([0-9]+\)$' <<<"$output"; then
+  fail "main help does not show group counts"
+fi
+pass "main help does not show group counts"
+
+output=$("$CLI" commands)
+assert_output_contains "commands lists documented commands" "$output" "ub theme set <theme-name>"
+
+"$CLI" commands --json | jq -e '.ok == true and (.commands | length >= 90)' >/dev/null
+pass "commands --json is valid JSON with full bin coverage"
+
+"$CLI" commands --json | jq -e 'all(.commands[]; .summary != "undocumented")' >/dev/null
+pass "all included commands have summaries"
+
+"$CLI" commands --json | jq -e 'all(.commands[]; has("binary") and has("filename_route") and has("routes") and (has("legacy") | not) and (has("usage") | not) and (has("visibility") | not) and (has("mutates") | not) and (has("interactive") | not))' >/dev/null
+pass "JSON uses binary/routes and omits legacy/usage/extra metadata"
+
+"$CLI" commands --check >/dev/null
+pass "commands --check passes"
+
+"$CLI" commands --all >/dev/null
+pass "commands --all does not crash"
+
+"$CLI" commands --all --json | jq -e '.commands[] | select(.route == "ub hyprland window gaps toggle" and .summary != "undocumented")' >/dev/null
+pass "fallback commands are inferred and documented"
+
+"$CLI" commands --json | jq -e '.commands[] | select(.binary == "ub-pkg-add" and .route == "ub pkg add" and .filename_route == "ub pkg add" and (.routes | index("ub pkg add")))' >/dev/null
+pass "JSON exposes direct pkg add route"
+
+"$CLI" commands --json | jq -e '.commands[] | select(.binary == "ub-refresh-sddm" and .requires_sudo == true)' >/dev/null
+pass "sudo metadata marks sudo commands"
+
+output=$("$CLI" theme --help)
+assert_output_contains "group help renders" "$output" "Theme commands"
+
+output=$("$CLI" capture --help)
+assert_output_contains "capture group includes screenshot route" "$output" "ub capture screenshot"
+
+output=$("$CLI" toggle)
+assert_output_contains "bare root command with children renders help instead of dispatch" "$output" "Toggle commands"
+assert_output_contains "bare toggle help includes child route" "$output" "ub toggle waybar"
+
+output=$("$CLI" pkg --help)
+assert_output_contains "package group includes pkg add fallback route" "$output" "ub pkg add <packages...>"
+
+output=$("$CLI" restart --help)
+assert_output_contains "restart group includes known commands" "$output" "ub restart waybar"
+
+output=$("$CLI" hw --help)
+assert_output_contains "hardware group includes touchpad" "$output" "ub hw touchpad"
+
+output=$("$CLI" hw nvidia)
+assert_output_contains "partial hardware prefix renders matching commands" "$output" "ub hw nvidia gsp"
+assert_output_contains "partial hardware prefix includes nested match" "$output" "ub hw nvidia without gsp"
+
+output=$("$CLI" menu --help)
+assert_output_contains "menu group includes select route" "$output" "ub menu select"
+
+output=$("$CLI" system lock --help)
+assert_output_contains "system lock help is safe" "$output" "ub-system-lock"
+
+CLI="$CLI" python3 <<'PY'
+import json
+import os
+import subprocess
+import sys
+
+cli = os.environ['CLI']
+commands = json.loads(subprocess.check_output([cli, 'commands', '--json'], text=True))['commands']
+by_group = {}
+for command in commands:
+  binary = command['binary']
+  stem = binary.removeprefix('ub-')
+  group = stem.split('-', 1)[0]
+  filename_route = 'ub ' + stem.replace('-', ' ')
+  by_group.setdefault(group, []).append((binary, filename_route, command['route']))
+
+missing = []
+for group, rows in sorted(by_group.items()):
+  proc = subprocess.run([cli, group, '--help'], text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  output = proc.stdout + proc.stderr
+  if proc.returncode != 0:
+    missing.append((group, '<group-help-failed>', f'exit {proc.returncode}'))
+    continue
+  for binary, filename_route, canonical_route in rows:
+    if filename_route not in output and canonical_route not in output and binary not in output:
+      missing.append((group, binary, filename_route))
+
+if missing:
+  for row in missing:
+    print('\t'.join(row), file=sys.stderr)
+  sys.exit(1)
+PY
+pass "every filename-derived group help represents its bins"
+
+output=$(timeout 5 "$CLI" theme set --help)
+assert_output_contains "command help renders without executing" "$output" "Binary:"
+assert_output_contains "theme set help names binary" "$output" "ub-theme-set"
+
+output=$("$CLI" screenshot --help)
+assert_output_contains "root alias resolves to command help" "$output" "ub-capture-screenshot"
+
+"$CLI" commands --json | jq -e '.commands[] | select(.binary == "ub-capture-screenshot") | .aliases | index("ub screenshot")' >/dev/null
+pass "aliases are included in JSON metadata"
+
+output=$("$CLI" pkg add --help)
+assert_output_contains "pkg add help resolves" "$output" "ub-pkg-add"
+assert_output_contains "pkg add help shows direct route" "$output" "ub pkg add <packages...>"
+
+"$CLI" hook no-such-hook >/dev/null
+pass "safe dispatch works for missing hooks"
+
+for binary in \
+  ub \
+  ub-theme-set \
+  ub-capture-screenshot \
+  ub-system-lock \
+  ub-pkg-add; do
+  [[ -x $UBUNTU/bin/$binary ]] || fail "binary is executable: $binary"
+  pass "binary is executable: $binary"
+done
+
+while IFS= read -r binary_path; do
+  header=$(awk '
+    NR == 1 && /^#!/ { next }
+    /^[[:space:]]*$/ { if (seen) print; next }
+    /^[[:space:]]*#/ { seen=1; print; next }
+    { exit }
+  ' "$binary_path")
+
+  grep -q '^# ub:summary=' <<<"$header" || fail "metadata summary is present: $binary_path"
+  ! grep -q '^# ub:binary=' <<<"$header" || fail "metadata does not repeat inferred binary: $binary_path"
+  ! grep -q '^# ub:args=$' <<<"$header" || fail "metadata does not include empty args: $binary_path"
+  ! grep -Eq '^# ub:(legacy|usage|visibility|mutates|interactive)=' <<<"$header" || fail "metadata avoids removed fields: $binary_path"
+  ! grep -q '^# ub:requires-sudo=false$' <<<"$header" || fail "metadata omits false booleans: $binary_path"
+done < <(find "$UBUNTU/bin" -maxdepth 1 -type f -executable -name 'ub-*' | sort)
+pass "all executable bins have slim self-documenting metadata"
+
+TMPDIR=$(mktemp -d)
+ln -s "$CLI" "$TMPDIR/ub"
+
+{
+  printf '#!/bin/bash\n\n'
+  printf '# ordinary comments are fine\n'
+  printf '# ub:this malformed line should be ignored\n'
+  printf '# ub:group=weird\n'
+  printf '# ub:name=test\n'
+  printf '# ub:summary=Survives malformed metadata comments\n'
+  printf '# ub:made-up=value\n'
+  printf 'echo weird-ok\n'
+} >"$TMPDIR/ub-weird-test"
+chmod +x "$TMPDIR/ub-weird-test"
+
+{
+  printf '#!/bin/bash\n\n'
+  printf '# a partial metadata header should not destroy fallback routing\n'
+  printf '# ub:summary=Partial metadata keeps inferred route\n'
+  printf '# ub:made-up=value\n'
+  printf 'echo partial-ok\n'
+} >"$TMPDIR/ub-partial-meta-test"
+chmod +x "$TMPDIR/ub-partial-meta-test"
+
+{
+  printf '#!/bin/bash\n\n'
+  printf 'echo body-metadata-ok\n'
+  printf '# ub:group=wrong\n'
+  printf '# ub:name=wrong\n'
+} >"$TMPDIR/ub-body-metadata-test"
+chmod +x "$TMPDIR/ub-body-metadata-test"
+
+"$TMPDIR/ub" commands --all --json | jq -e '.commands[] | select(.route == "ub weird test" and .summary == "Survives malformed metadata comments")' >/dev/null
+pass "unknown metadata values are non-fatal"
+
+"$TMPDIR/ub" commands --all --json | jq -e '.commands[] | select(.route == "ub partial meta test" and .summary == "Partial metadata keeps inferred route")' >/dev/null
+pass "partial metadata keeps inferred fallback route"
+
+"$TMPDIR/ub" commands --all --json | jq -e '.commands[] | select(.route == "ub body metadata test" and .summary == "Run the body metadata test command")' >/dev/null
+pass "metadata-looking comments after script body are ignored"
+
+output=$("$TMPDIR/ub" weird test)
+assert_output_contains "temporary metadata command dispatches" "$output" "weird-ok"
+
+output=$("$TMPDIR/ub" partial meta test)
+assert_output_contains "partial metadata command dispatches" "$output" "partial-ok"
+
+output=$("$TMPDIR/ub" body metadata test)
+assert_output_contains "body metadata command dispatches by filename" "$output" "body-metadata-ok"

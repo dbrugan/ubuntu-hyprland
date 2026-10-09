@@ -1,0 +1,12 @@
+#!/bin/bash
+
+set -euo pipefail
+
+ROOT=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
+
+for suite in "$ROOT"/test/shell.d/*-test.sh; do
+  [[ $suite == */base-test.sh ]] && continue
+  [[ -f $suite && -x $suite ]] || continue
+  echo "--- $suite"
+  "$suite"
+done
