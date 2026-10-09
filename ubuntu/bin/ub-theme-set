@@ -1,0 +1,61 @@
+#!/bin/bash
+
+# ub:summary=Apply an Ubuntu theme
+# ub:group=theme
+# ub:name=set
+# ub:args=<theme-name>
+# ub:examples=ub theme list | ub theme set "Tokyo Night"
+
+# Minimal theme switcher: swaps ~/.config/ubuntu/current atomically from the
+# shipped or user theme directories. Template rendering and per-app theming
+# are intentionally out of scope (see AGENTS.md).
+
+if [[ -z $1 ]]; then
+  echo "Usage: ub-theme-set <theme-name>"
+  exit 1
+fi
+
+UBUNTU_SHARE="${UBUNTU_PATH:-$HOME/.local/share/ubuntu-hyprland}"
+CURRENT_THEME_PATH="$HOME/.config/ubuntu/current/theme"
+NEXT_THEME_PATH="$HOME/.config/ubuntu/current/next-theme"
+USER_THEMES_PATH="$HOME/.config/ubuntu/themes"
+UBUNTU_THEMES_PATH="$UBUNTU_SHARE/themes"
+
+THEME_NAME=$(echo "$1" | sed -E 's/<[^>]+>//g' | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
+
+if [[ ! -d $UBUNTU_THEMES_PATH/$THEME_NAME ]] && [[ ! -d $USER_THEMES_PATH/$THEME_NAME ]]; then
+  echo "Theme '$THEME_NAME' does not exist"
+  exit 1
+fi
+
+# Setup clean next theme directory (for atomic theme config swapping)
+rm -rf "$NEXT_THEME_PATH"
+mkdir -p "$NEXT_THEME_PATH"
+
+# Copy shipped theme first, then overlay user customizations on top
+cp -r "$UBUNTU_THEMES_PATH/$THEME_NAME/"* "$NEXT_THEME_PATH/" 2>/dev/null
+cp -r "$USER_THEMES_PATH/$THEME_NAME/"* "$NEXT_THEME_PATH/" 2>/dev/null
+
+# Swap next theme in as current
+rm -rf "$CURRENT_THEME_PATH"
+mv "$NEXT_THEME_PATH" "$CURRENT_THEME_PATH"
+
+# Store theme name for reference
+mkdir -p "$HOME/.config/ubuntu/current"
+echo "$THEME_NAME" >"$HOME/.config/ubuntu/current/theme.name"
+
+# Change background with theme
+if [[ ${UBUNTU_THEME_SKIP_BACKGROUND:-} != "1" ]]; then
+  FIRST_BACKGROUND=$(find -L "$CURRENT_THEME_PATH/backgrounds" -maxdepth 1 -type f 2>/dev/null | sort | head -n 1)
+  if [[ -n $FIRST_BACKGROUND ]]; then
+    ub-theme-bg-set "$FIRST_BACKGROUND"
+  fi
+fi
+
+# Restart components to apply new theme
+if pgrep -x waybar >/dev/null; then
+  ub-restart-waybar
+fi
+
+# Call hook on theme set
+ub-hook theme-set "$THEME_NAME" >/dev/null

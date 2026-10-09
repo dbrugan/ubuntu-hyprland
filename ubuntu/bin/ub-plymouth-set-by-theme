@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# ub:summary=Set the Plymouth boot theme from an Ubuntu theme
+# ub:group=plymouth
+# ub:name=set-by-theme
+# ub:args=<theme-name>
+# ub:requires-sudo=true
+
+# Resolve a theme by name and apply its unlock.png + colors.toml as the
+# Plymouth boot screen via ub-plymouth-set.
+
+if [[ $# -ne 1 ]]; then
+  echo "Usage: ub-plymouth-set-by-theme <theme-name>" >&2
+  exit 1
+fi
+
+UBUNTU_SHARE="${UBUNTU_PATH:-$HOME/.local/share/ubuntu-hyprland}"
+
+theme=$1
+
+if [[ -d ~/.config/ubuntu/themes/$theme ]]; then
+  theme_dir=~/.config/ubuntu/themes/$theme
+else
+  theme_dir="$UBUNTU_SHARE/themes/$theme"
+fi
+
+if [[ ! -f $theme_dir/colors.toml ]]; then
+  echo "Theme '$theme' has no colors.toml" >&2
+  exit 1
+fi
+
+bg=$(awk -F'"' '/^background/{print $2}' "$theme_dir/colors.toml")
+text=$(awk -F'"' '/^foreground/{print $2}' "$theme_dir/colors.toml")
+
+exec ub-plymouth-set "$bg" "$text" "$theme_dir/unlock.png"

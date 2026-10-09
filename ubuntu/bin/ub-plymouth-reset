@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# ub:summary=Restore the default Ubuntu Plymouth boot theme and SDDM login screen
+# ub:group=plymouth
+# ub:name=reset
+# ub:requires-sudo=true
+
+UBUNTU_SHARE="${UBUNTU_PATH:-$HOME/.local/share/ubuntu-hyprland}"
+
+theme_dir="/usr/share/plymouth/themes/ubuntu"
+
+sudo find "$UBUNTU_SHARE/default/plymouth" -maxdepth 1 -type f -exec cp -t "$theme_dir/" {} +
+sudo plymouth-set-default-theme ubuntu
+
+sudo update-initramfs -u
+
+ub-refresh-sddm

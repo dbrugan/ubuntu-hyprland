@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# ub:summary=Display the Ubuntu Hyprland logo in the terminal using green color.
+
+clear
+echo -e "\033[32m"
+cat "${UBUNTU_PATH:-$HOME/.local/share/ubuntu-hyprland}/logo.txt"
+echo -e "\033[0m"
+echo
