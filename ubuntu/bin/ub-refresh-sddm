@@ -3,5 +3,5 @@
 # ub:summary=Refresh the SDDM theme from default
 # ub:requires-sudo=true
 
-sudo rm -rf /usr/share/sddm/themes/omarchy
-sudo cp -r "$UBUNTU_PATH/default/sddm/omarchy" /usr/share/sddm/themes/omarchy
+sudo rm -rf /usr/share/sddm/themes/ubuntu
+sudo cp -r "$UBUNTU_PATH/default/sddm/ubuntu" /usr/share/sddm/themes/ubuntu

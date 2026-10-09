@@ -2,7 +2,7 @@
 
 # ub:summary=Extract text from a screenshot region with OCR
 # ub:group=capture
-# ub:examples=omarchy capture ocr
+# ub:examples=ub capture ocr
 
 # Keep hyprpicker alive until after grim captures so the screenshot sees the
 # frozen overlay rather than live content shifting during teardown.

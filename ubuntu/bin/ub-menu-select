@@ -4,7 +4,7 @@
 # ub:group=menu
 # ub:name=select
 # ub:args=prompt option... [-- walker args...]
-# ub:examples=omarchy menu select Format jpg png|ub-menu-select Resolution 4k 1080p 720p -- --width 400
+# ub:examples=ub menu select Format jpg png|ub-menu-select Resolution 4k 1080p 720p -- --width 400
 
 set -euo pipefail
 

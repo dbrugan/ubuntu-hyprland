@@ -4,7 +4,7 @@
 # ub:group=menu
 # ub:name=file
 # ub:args=label paths formats [walker args...]
-# ub:examples=omarchy menu file "Select image" "$HOME/Pictures" "jpg png webp"|ub-menu-file "Select media" "$HOME/Pictures:$HOME/Videos" "jpg png mp4 mov" --width 800
+# ub:examples=ub menu file "Select image" "$HOME/Pictures" "jpg png webp"|ub-menu-file "Select media" "$HOME/Pictures:$HOME/Videos" "jpg png mp4 mov" --width 800
 
 set -euo pipefail
 

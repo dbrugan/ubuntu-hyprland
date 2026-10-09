@@ -3,8 +3,8 @@
 # ub:summary=Take a screenshot
 # ub:group=capture
 # ub:args=[smart|region|windows|fullscreen] [slurp|copy|save] [--editor=<name>]
-# ub:examples=omarchy screenshot | omarchy capture screenshot region
-# ub:aliases=omarchy screenshot
+# ub:examples=ub screenshot | ub capture screenshot region
+# ub:aliases=ub screenshot
 
 [[ -f ~/.config/user-dirs.dirs ]] && source ~/.config/user-dirs.dirs
 OUTPUT_DIR="${UBUNTU_SCREENSHOT_DIR:-${XDG_PICTURES_DIR:-$HOME/Pictures}}"

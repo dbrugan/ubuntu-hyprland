@@ -4,7 +4,7 @@
 # ub:group=transcode
 # ub:name=ascii
 # ub:args=<input-image.svg|png> <output-path> [--width <columns>] [--height <rows>] [--mode <braille|block>] [--threshold <percent>] [--invert]
-# ub:examples=omarchy transcode ascii ~/logo.svg /tmp/logo.txt | omarchy transcode ascii ~/logo.png ~/.config/omarchy/branding/screensaver.txt --width 80
+# ub:examples=ub transcode ascii ~/logo.svg /tmp/logo.txt | ub transcode ascii ~/logo.png ~/.config/ubuntu/branding/screensaver.txt --width 80
 
 set -o pipefail
 
