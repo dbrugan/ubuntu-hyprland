@@ -203,17 +203,22 @@ instead.
 
 # Theming
 
-Omarchy's theming is a deliberate deviation and is not ported. Do not port
-`omarchy/install/config/theme.sh`, the `omarchy-theme-*` command family, or
-anything else that reads upstream's `themes/` directory.
+Omarchy's theming is a deliberate deviation and is not ported wholesale. Do not
+port `omarchy/install/config/theme.sh` verbatim, upstream's `themes/`
+directory, or the template-rendering and per-appsetter machinery
+(`omarchy-theme-set-templates`, `omarchy-theme-set-{foot,gnome,browser,vscode,obsidian,keyboard}`,
+the `color0-15` palette and theme-selection machinery do not apply).
 
 - Upstream's `theme.sh` carries Chromium-specific setup: it creates
   `/etc/chromium/policies/managed` and clears `~/.config/chromium/SingletonLock`.
   Porting it verbatim would drag in a browser this project does not use.
 - Any theming this project does have is our own, described under
   `# Config Structure`: `themes/*/colors.toml` with semantic color names, and
-  `default/themed/*.tpl` templates. Upstream's `color0-15` palette and its
-  theme-selection machinery do not apply.
+  `default/themed/*.tpl` templates.
+- The minimal local commands that the Elephant menus and Hypr configs depend
+  on are in scope: `ub-theme-set` (atomic `~/.config/ubuntu/current` swap only),
+  `ub-theme-bg-set`, and the `ub-plymouth-*` trio. Keep them free of template
+  rendering and per-app setters; theme content seeding is separate work.
 
 # Refresh Pattern
 
@@ -262,22 +267,20 @@ Automated tests are not ported yet. The Omarchy model to follow:
 
 These pieces are intentional scaffolding, not breakage:
 
-- `install/login/` is ported: plymouth, default-keyring, and sddm run from
-  `all.sh`. Upstream's `hibernation.sh` and `limine-snapper.sh` are
-  deliberately not ported; see the bullets below.
-- `config/` holds the ported Hyprland tree (`config/hypr/`) plus the icon
-  font. The rest of upstream's `config/` is not ported.
-- Theming is intentionally not ported; see `# Theming`. `config/all.sh` does
+- `install/login/` is ported: plymouth, default-keyring, limine-snapper, and
+  sddm run from `all.sh`. Upstream's `hibernation.sh` is deliberately not
+  ported; see the bullets below.
+- `config/` holds the ported Hyprland tree (`config/hypr/`), the Waybar
+  config (`config/waybar/`), and the uwsm session env (`config/uwsm/`).
+  The rest of upstream's `config/` is not ported.
+- Theming is minimal by design; see `# Theming`. `config/all.sh` does
   not reference a `theme.sh`.
 - `install/packaging/webapps.sh` and the `ub-launch-webapp` /
   `ub-launch-or-focus-webapp` helpers are not ported (webapps are
   intentionally omitted from this setup).
-- `install/config/hardware/nvidia.sh` writes its NVIDIA environment block to
-  `~/.config/hypr/envs.conf`, which the ported `hyprland.conf` does not
-  source, so those variables never take effect. Upstream is mid-migration on
-  this: `config/hypr/envs.conf` was deleted upstream in commit `638e35fc` in
-  favour of `~/.config/uwsm/env`, and `nvidia.sh` was never updated to follow.
-  Fix is queued, not yet applied.
+- `install/config/hardware/nvidia.sh` appends its NVIDIA environment block to
+  `~/.config/uwsm/env` (sourced at login), following upstream's migration in
+  commit `638e35fc` away from the never-sourced `config/hypr/envs.conf`.
 - `install/config/config.sh` copies `config/` over `~/.config/` unconditionally,
   so re-running the installer discards hand edits to `~/.config/hypr/*.conf`.
   Upstream has the same line and answers it with `omarchy-refresh-config`,
@@ -285,16 +288,22 @@ These pieces are intentional scaffolding, not breakage:
 - The login stage does not set up hibernation. Upstream's `hibernation.sh` is
   not ported: it calls `omarchy-hibernation-setup`, and hibernation is
   intentionally omitted to match the target spec (no swap, zram enabled).
-- Upstream's `login/limine-snapper.sh` is not ported. It is built on Arch boot
-  plumbing — `mkinitcpio` and its `/etc/mkinitcpio.conf.d` drop-ins, pacman
-  transaction hooks, `/usr/share/libalpm`, `arch-limine` ESP paths, and
-  `default/limine/` assets this repo does not carry. `mkinitcpio` and `limine`
-  have no 26.04 package. Bootloader setup stays manual on this port, and the
-  hand-built Limine install must be maintained by hand after kernel upgrades.
-  Porting it properly needs an `initramfs-tools` equivalent plus Limine
-  assets; treat it as its own piece of work.
-- `install/default/snapper/root` is carried but currently unreferenced, since
-  it was only installed by the unported `limine-snapper.sh`.
+- `login/limine-snapper.sh` is ported, but rewritten for Ubuntu rather than
+  copied. It owns `/boot/limine.conf`, the UKIs, and the snapper snapshot menu;
+  the bootloader itself is still deployed by hand (see `ubuntu/README.md`) and
+  this script converges an existing install rather than creating one. Upstream's
+  Arch plumbing is replaced one-for-one: `mkinitcpio` conf.d -> `initramfs-tools`
+  conf.d plus an explicit module list, `limine-mkinitcpio-hook` -> `ukify` driven
+  from `/etc/kernel/postinst.d` and `/etc/initramfs/post-update.d`,
+  `limine-install` -> copying `BOOTX64.EFI` and registering it with `efibootmgr`,
+  and the `libalpm` re-enable step is dropped since dpkg kernel hooks always run.
+  Two constraints are worth keeping in mind when editing it. First, exactly two
+  things write `/boot/limine.conf`: this script's kernel entries and
+  `limine-snapper-sync`'s snapshot entries. Do not add `limine-entry-tool`
+  without first disabling its `/etc/boot/hooks` automation, or it becomes a
+  third writer. Second, UKIs are built unsigned, which is sound only because
+  `install/preflight/guard.sh` hard-aborts on Secure Boot being enabled.
+- `install/default/snapper/root` is installed by `login/limine-snapper.sh`.
 - The hardware-specific packaging scripts (`asus-rog.sh`, `framework16.sh`,
   `surface.sh`, `dell-xps-touchpad-haptics.sh`) and their `ub-hw-*`
   detection helpers are not ported; packages they depend on are not available
