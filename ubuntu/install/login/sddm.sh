@@ -1,9 +1,9 @@
-# Install the Omarchy SDDM theme
+# Install the Ubuntu SDDM theme
 ub-refresh-sddm
 
 # Setup SDDM login service
 sudo mkdir -p /usr/local/share/wayland-sessions
-sudo cp "$UBUNTU_PATH/default/wayland-sessions/omarchy.desktop" /usr/local/share/wayland-sessions/omarchy.desktop
+sudo cp "$UBUNTU_PATH/default/wayland-sessions/ubuntu.desktop" /usr/local/share/wayland-sessions/ubuntu.desktop
 sudo cp "$UBUNTU_PATH/default/sddm/hyprland.conf" /usr/share/sddm/hyprland.conf
 
 sudo mkdir -p /etc/sddm.conf.d
@@ -19,13 +19,13 @@ if [[ ! -f /etc/sddm.conf.d/autologin.conf ]]; then
   cat <<EOF | sudo tee /etc/sddm.conf.d/autologin.conf >/dev/null
 [Autologin]
 User=$USER
-Session=omarchy
+Session=ubuntu
 
 [Theme]
-Current=omarchy
+Current=ubuntu
 EOF
 else
-  sudo sed -i 's/^Session=hyprland-uwsm$/Session=omarchy/' /etc/sddm.conf.d/autologin.conf
+  sudo sed -i 's/^Session=hyprland-uwsm$/Session=ubuntu/' /etc/sddm.conf.d/autologin.conf
 fi
 
 # Prevent password-based SDDM logins from creating an encrypted login keyring

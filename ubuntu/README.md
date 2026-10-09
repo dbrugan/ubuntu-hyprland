@@ -1,5 +1,5 @@
 # Ubuntu Hyprland
-an Omarchy inspired hyprland setup for Ubuntu.
+An Ubuntu-inspired Hyprland/Quickshell desktop setup, ported from Omarchy.
 
 ### Installation
 

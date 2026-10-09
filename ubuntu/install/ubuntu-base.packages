@@ -1,4 +1,4 @@
-# Omarchy core package list installed via install/packaging/base.sh
+# Ubuntu Hyprland core package list installed via install/packaging/base.sh
 
 alacritty
 alsa-utils
