@@ -1,0 +1,11 @@
+# Editor used by CLI
+export SUDO_EDITOR="$EDITOR"
+export BAT_THEME=ansi
+
+# Color man pages with bat
+export MANROFFOPT="-c"
+export MANPAGER="sh -c 'col -bx | bat -l man -p'"
+
+# Duplicated from install.sh so interactive shells work too
+export UBUNTU_PATH=$HOME/.local/share/ubuntu-hyprland
+export PATH=$UBUNTU_PATH/bin:$PATH:$HOME/.local/bin

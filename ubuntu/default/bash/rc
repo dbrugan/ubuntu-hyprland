@@ -1,0 +1,6 @@
+source ~/.local/share/ubuntu-hyprland/default/bash/envs
+source ~/.local/share/ubuntu-hyprland/default/bash/shell
+source ~/.local/share/ubuntu-hyprland/default/bash/aliases
+source ~/.local/share/ubuntu-hyprland/default/bash/functions
+source ~/.local/share/ubuntu-hyprland/default/bash/init
+[[ $- == *i* ]] && bind -f ~/.local/share/ubuntu-hyprland/default/bash/inputrc
