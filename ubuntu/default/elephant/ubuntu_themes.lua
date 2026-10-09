@@ -1,8 +1,8 @@
 --
--- Dynamic Omarchy Theme Menu for Elephant/Walker
+-- Dynamic Ubuntu Theme Menu for Elephant/Walker
 --
-Name = "omarchythemes"
-NamePretty = "Omarchy Themes"
+Name = "ubuntuThemes"
+NamePretty = "Ubuntu Themes"
 HideFromProviderlist = true
 
 -- Check if file exists using Lua (no subprocess)
@@ -40,9 +40,10 @@ end
 -- The main function elephant will call
 function GetEntries()
   local entries = {}
-  local user_theme_dir = os.getenv("HOME") .. "/.config/omarchy/themes"
-  local omarchy_path = os.getenv("OMARCHY_PATH") or ""
-  local default_theme_dir = omarchy_path .. "/themes"
+  local home = os.getenv("HOME")
+  local user_theme_dir = home .. "/.config/ubuntu/themes"
+  local ubuntu_path = os.getenv("UBUNTU_PATH") or (home .. "/.local/share/ubuntu-hyprland")
+  local default_theme_dir = ubuntu_path .. "/themes"
 
   local seen_themes = {}
 
@@ -77,7 +78,7 @@ function GetEntries()
             Preview = preview_path,
             PreviewType = "file",
             Actions = {
-              activate = "omarchy-theme-set " .. theme_name,
+              activate = "ub-theme-set " .. theme_name,
             },
           })
         end

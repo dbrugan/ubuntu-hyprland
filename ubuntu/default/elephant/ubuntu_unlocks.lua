@@ -1,13 +1,13 @@
 --
--- Dynamic Omarchy Unlocks Menu for Elephant/Walker
+-- Dynamic Ubuntu Unlocks Menu for Elephant/Walker
 --
--- A "Default" entry restores the omarchy-shipped Plymouth via
--- omarchy-plymouth-reset. After that, every theme that has a preview-unlock.png
--- appears as a customised unlock; picking one runs omarchy-plymouth-set-by-theme
+-- A "Default" entry restores the upstream-shipped Plymouth via
+-- ub-plymouth-reset. After that, every theme that has a preview-unlock.png
+-- appears as a customised unlock; picking one runs ub-plymouth-set-by-theme
 -- <theme>. Both run in a floating terminal so sudo can prompt.
 --
-Name = "omarchyunlocks"
-NamePretty = "Omarchy Unlocks"
+Name = "ubuntuUnlocks"
+NamePretty = "Ubuntu Unlocks"
 HideFromProviderlist = true
 FixedOrder = true
 
@@ -27,10 +27,10 @@ end
 function GetEntries()
   local entries = {}
   local home = os.getenv("HOME")
-  local user_themes_dir = home .. "/.config/omarchy/themes"
-  local omarchy_path = os.getenv("OMARCHY_PATH") or ""
-  local default_themes_dir = omarchy_path .. "/themes"
-  local default_preview = omarchy_path .. "/default/plymouth/preview-unlock.png"
+  local user_themes_dir = home .. "/.config/ubuntu/themes"
+  local ubuntu_path = os.getenv("UBUNTU_PATH") or (home .. "/.local/share/ubuntu-hyprland")
+  local default_themes_dir = ubuntu_path .. "/themes"
+  local default_preview = ubuntu_path .. "/default/plymouth/preview-unlock.png"
 
   local seen_themes = {}
 
@@ -60,8 +60,8 @@ function GetEntries()
             Preview = preview_path,
             PreviewType = "file",
             Actions = {
-              activate = "omarchy-launch-floating-terminal-with-presentation "
-                .. shell_escape("omarchy-plymouth-set-by-theme " .. shell_escape(theme_name)),
+              activate = "ub-launch-floating-terminal-with-presentation "
+                .. shell_escape("ub-plymouth-set-by-theme " .. shell_escape(theme_name)),
             },
           })
         end
@@ -78,8 +78,8 @@ function GetEntries()
   local default_entry = {
     Text = "Default  ",
     Actions = {
-      activate = "omarchy-launch-floating-terminal-with-presentation "
-        .. shell_escape("omarchy-plymouth-reset"),
+      activate = "ub-launch-floating-terminal-with-presentation "
+        .. shell_escape("ub-plymouth-reset"),
     },
   }
   if file_exists(default_preview) then
