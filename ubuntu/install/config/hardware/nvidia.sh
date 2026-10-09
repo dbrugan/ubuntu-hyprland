@@ -27,23 +27,32 @@ if lspci | grep -qi 'nvidia'; then
 options nvidia_drm modeset=1
 EOF
 
-  # Add NVIDIA environment variables based on GPU architecture
-  if [[ $GPU_ARCH = "turing_plus" ]]; then
-    # Turing+ (RTX 20xx, GTX 16xx, and newer) with GSP firmware support
-    cat >>"$HOME/.config/hypr/envs.conf" <<'EOF'
+  # Add NVIDIA environment variables based on GPU architecture.
+  # These go in the uwsm session env (sourced at login), not
+  # ~/.config/hypr/envs.conf, which hyprland.conf does not source.
+  UWSM_ENV="$HOME/.config/uwsm/env"
+  if [[ ! -f $UWSM_ENV ]]; then
+    mkdir -p "$(dirname "$UWSM_ENV")"
+    cp "$UBUNTU_PATH/config/uwsm/env" "$UWSM_ENV"
+  fi
+  if ! grep -q "NVIDIA (" "$UWSM_ENV" 2>/dev/null; then
+    if [[ $GPU_ARCH = "turing_plus" ]]; then
+      # Turing+ (RTX 20xx, GTX 16xx, and newer) with GSP firmware support
+      cat >>"$UWSM_ENV" <<'EOF'
 
 # NVIDIA (Turing+ with GSP firmware)
-env = NVD_BACKEND,direct
-env = LIBVA_DRIVER_NAME,nvidia
-env = __GLX_VENDOR_LIBRARY_NAME,nvidia
+export NVD_BACKEND=direct
+export LIBVA_DRIVER_NAME=nvidia
+export __GLX_VENDOR_LIBRARY_NAME=nvidia
 EOF
-  elif [[ $GPU_ARCH = "maxwell_pascal_volta" ]]; then
-    # Maxwell/Pascal/Volta (GTX 9xx/10xx, GT 10xx, Quadro P/M/GV, MX series, Titan X/Xp/V) lack GSP firmware
-    cat >>"$HOME/.config/hypr/envs.conf" <<'EOF'
+    elif [[ $GPU_ARCH = "maxwell_pascal_volta" ]]; then
+      # Maxwell/Pascal/Volta (GTX 9xx/10xx, GT 10xx, Quadro P/M/GV, MX series, Titan X/Xp/V) lack GSP firmware
+      cat >>"$UWSM_ENV" <<'EOF'
 
 # NVIDIA (Maxwell/Pascal/Volta without GSP firmware)
-env = NVD_BACKEND,egl
-env = __GLX_VENDOR_LIBRARY_NAME,nvidia
+export NVD_BACKEND=egl
+export __GLX_VENDOR_LIBRARY_NAME=nvidia
 EOF
+    fi
   fi
 fi

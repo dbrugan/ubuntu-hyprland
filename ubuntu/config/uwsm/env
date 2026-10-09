@@ -1,0 +1,11 @@
+# Changes require a restart to take effect.
+
+# Ensure Ubuntu Hyprland bins are in the path
+export UBUNTU_PATH=$HOME/.local/share/ubuntu-hyprland
+export PATH=$UBUNTU_PATH/bin:$PATH:$HOME/.local/bin
+
+# Set default terminal and editor
+source ~/.config/uwsm/default
+
+# Activate mise if present on the system
+ub-cmd-present mise && eval "$(mise activate bash --shims)"
