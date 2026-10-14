@@ -332,6 +332,24 @@ These pieces are intentional scaffolding, not breakage:
   third writer. Second, UKIs are built unsigned, which is sound only because
   `install/preflight/guard.sh` hard-aborts on Secure Boot being enabled.
 - `install/default/snapper/root` is installed by `login/limine-snapper.sh`.
+- Several upstream `install/config/` scripts are dropped as Arch-only, rather
+  than ported and left inert. `increase-lockout-limit.sh` rewrites
+  `pam_faillock` lines in `/etc/pam.d/system-auth`, but Ubuntu ships
+  `pam_faillock` unused with `/etc/security/faillock.conf` entirely commented
+  out, so the edit would do nothing. `kernel-modules-hook.sh` enables
+  `linux-modules-cleanup.service`, a unit systemd does not ship on Ubuntu.
+  `fix-powerprofilesctl-shebang.sh` corrects an `env python3` shebang, and
+  Ubuntu's `powerprofilesctl` already ships an absolute `#!/usr/bin/python3`.
+  `sudoless-asdcontrol.sh` is Apple-display brightness, covered by the vendor
+  hardware gap below. `omarchy-ai-skill.sh` and `pi.sh` install Omarchy's own
+  skill and pi-agent extension, neither of which this port carries.
+- Of upstream's eight generic hardware fixes, three are ported: `network.sh`
+  (enables iwd and masks `systemd-networkd-wait-online`), `fix-fkeys.sh`, and
+  `fix-synaptic-touchpad.sh`. The rest need packages absent from the archive
+  (`broadcom-wl`, `yt6801-dkms`, `tuxedo-drivers-nocompatcheck-dkms`) or
+  mkinitcpio configuration. `set-wireless-regdom.sh` is dropped rather than
+  translated: it targets CRDA's `/etc/conf.d/wireless-regdom`, and Ubuntu has
+  dropped CRDA without a documented equivalent config path for iwd.
 - The hardware-specific packaging scripts (`asus-rog.sh`, `framework16.sh`,
   `surface.sh`, `dell-xps-touchpad-haptics.sh`) and their `ub-hw-*`
   detection helpers are not ported; packages they depend on are not available
