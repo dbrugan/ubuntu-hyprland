@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# ub:summary=Reload mako configuration (used by the theme switcher).
+
+makoctl reload

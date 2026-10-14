@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# ub:summary=Restart hyprctl by reloading the compositor configuration.
+
+hyprctl reload

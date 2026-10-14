@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# ub:summary=Restart the hyprsunset service (used for blue light filtering/night light).
+
+ub-restart-app hyprsunset

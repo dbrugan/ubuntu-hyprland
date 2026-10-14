@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# ub:summary=Restart the hypridle service (used for idle detection and auto-lock).
+
+ub-restart-app hypridle
