@@ -22,12 +22,6 @@ else
   echo_in_style "Finished installing"
 fi
 
-# Nothing in this repo creates this file, but the install bootstrap may, so
-# leave the cleanup in place.
-if sudo test -f /etc/sudoers.d/99-ubuntu-installer; then
-  sudo rm -f /etc/sudoers.d/99-ubuntu-installer &>/dev/null
-fi
-
 # Exit gracefully if user chooses not to reboot
 if gum confirm --padding "0 0 0 $((PADDING_LEFT + 32))" --show-help=false --default --affirmative "Reboot Now" --negative "" ""; then
   # Clear screen to hide any shutdown messages
