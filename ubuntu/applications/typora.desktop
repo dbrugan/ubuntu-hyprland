@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Typora
+Comment=A simple and beautiful markdown editor
+Exec=typora %U
+Icon=typora
+Terminal=false
+StartupNotify=true
+StartupWMClass=typora
+Categories=Utility;TextEditor;
+MimeType=text/markdown;
