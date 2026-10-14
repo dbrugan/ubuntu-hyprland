@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# ub:summary=Reset the Waybar config to the shipped defaults
+# ub:examples=ub refresh waybar
+
+ub-refresh-config waybar/config.jsonc
+ub-refresh-config waybar/style.css
+ub-restart-waybar

@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# ub:summary=Overwrite the user config for hypridle with the shipped default and restart the service.
+
+ub-refresh-config hypr/hypridle.conf
+ub-restart-hypridle

@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# ub:summary=Reset the Limine boot menu to the shipped default and regenerate the entries.
+# ub:requires-sudo=true
+
+UBUNTU_SHARE="${UBUNTU_PATH:-$HOME/.local/share/ubuntu-hyprland}"
+LIMINE_CONF="/boot/limine.conf"
+
+if [[ ! -f $LIMINE_CONF ]]; then
+  echo "No $LIMINE_CONF to refresh" >&2
+  exit 1
+fi
+
+# Keep the current menu: it holds the kernel entries and the Snapshots submenu,
+# neither of which lives in the shipped template.
+sudo cp "$LIMINE_CONF" "$LIMINE_CONF.bak.$(date +%s)"
+sudo cp "$UBUNTU_SHARE/default/limine/limine.conf" "$LIMINE_CONF"
+
+# Rebuild the kernel entries, then let the sync tool re-add the snapshot submenu.
+if ub-cmd-present ubuntu-limine-entries; then
+  sudo ubuntu-limine-entries
+fi
+
+if ub-cmd-present limine-snapper-sync; then
+  sudo limine-snapper-sync || echo "Warning: limine-snapper-sync did not run cleanly" >&2
+fi
+
+if ! grep -q "^/+" "$LIMINE_CONF"; then
+  echo "Error: no boot entries were added to $LIMINE_CONF" >&2
+  exit 1
+fi
+
+echo "Limine config reset"

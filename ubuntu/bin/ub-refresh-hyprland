@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# ub:summary=Overwrite the user configs in ~/.config/hypr with the shipped defaults.
+
+UBUNTU_SHARE="${UBUNTU_PATH:-$HOME/.local/share/ubuntu-hyprland}"
+
+for conf in autostart bindings input looknfeel monitors hyprland xdph; do
+  ub-refresh-config "hypr/$conf.conf"
+done
+
+bash "$UBUNTU_SHARE/install/config/detect-keyboard-layout.sh"

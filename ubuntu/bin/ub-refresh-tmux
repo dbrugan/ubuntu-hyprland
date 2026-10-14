@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# ub:summary=Overwrite the user tmux config with the shipped default and reload tmux.
+
+ub-refresh-config tmux/tmux.conf
+ub-restart-tmux

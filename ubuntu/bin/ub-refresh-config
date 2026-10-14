@@ -1,0 +1,48 @@
+#!/bin/bash
+
+# ub:summary=Copies the named config from the shipped config/X/Y/Z to ~/.config/X/Y/Z, backing up any existing file.
+# ub:args=<config-path>
+# ub:examples=ub refresh config hypr/hyprlock.conf
+
+config_file=$1
+
+if [[ -z $config_file ]]; then
+  cat <<USAGE
+  Usage: $(basename "$0") <config-path>
+
+  Must provide a file path relative to the config directory to be refreshed.
+  To copy config/hypr/hyprlock.conf to ~/.config/hypr/hyprlock.conf:
+
+    $(basename "$0") hypr/hyprlock.conf
+USAGE
+  exit 1
+fi
+
+UBUNTU_SHARE="${UBUNTU_PATH:-$HOME/.local/share/ubuntu-hyprland}"
+user_config_file="$HOME/.config/$config_file"
+default_config_file="$UBUNTU_SHARE/config/$config_file"
+backup_config_file="$user_config_file.bak.$(date +%s)"
+
+if [[ ! -f $default_config_file ]]; then
+  echo "No shipped config at $default_config_file" >&2
+  exit 1
+fi
+
+mkdir -p "$(dirname "$user_config_file")"
+
+if [[ -f $user_config_file ]]; then
+  # Backup first so the diff below can compare against what was replaced
+  cp -f "$user_config_file" "$backup_config_file"
+
+  cp -f "$default_config_file" "$user_config_file"
+
+  # An identical copy means the backup carries no information worth keeping
+  if cmp -s "$user_config_file" "$backup_config_file"; then
+    rm "$backup_config_file"
+  else
+    echo -e "\e[31mReplaced $user_config_file with the shipped default.\nSaved backup as ${backup_config_file}.\n\n\e[32mChanges:\e[0m"
+    diff "$user_config_file" "$backup_config_file" || true
+  fi
+else
+  cp -f "$default_config_file" "$user_config_file"
+fi
