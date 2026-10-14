@@ -21,8 +21,13 @@ run_logged $UBUNTU_INSTALL/config/powerprofilesctl-rules.sh
 run_logged $UBUNTU_INSTALL/config/wifi-powersave-rules.sh
 run_logged $UBUNTU_INSTALL/config/plocate-ac-only.sh
 run_logged $UBUNTU_INSTALL/config/user-dirs.sh
+run_logged $UBUNTU_INSTALL/config/timezones.sh
+run_logged $UBUNTU_INSTALL/config/increase-sudo-tries.sh
 
 run_logged $UBUNTU_INSTALL/config/hardware/bluetooth.sh
+run_logged $UBUNTU_INSTALL/config/hardware/network.sh
+run_logged $UBUNTU_INSTALL/config/hardware/fix-fkeys.sh
+run_logged $UBUNTU_INSTALL/config/hardware/fix-synaptic-touchpad.sh
 run_logged $UBUNTU_INSTALL/config/hardware/ignore-power-button.sh
 run_logged $UBUNTU_INSTALL/config/hardware/printer.sh
 run_logged $UBUNTU_INSTALL/config/hardware/usb-autosuspend.sh
