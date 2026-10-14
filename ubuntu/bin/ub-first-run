@@ -6,11 +6,27 @@
 set -e
 
 FIRST_RUN_MODE=~/.local/state/ubuntu-hyprland/first-run.mode
+# Duplicated from install.sh and default/bash/envs, so this also works when the
+# session env has not been sourced.
+UBUNTU_PATH="${UBUNTU_PATH:-$HOME/.local/share/ubuntu-hyprland}"
 
 if [[ -f $FIRST_RUN_MODE ]]; then
   rm -f "$FIRST_RUN_MODE"
 
+  bash "$UBUNTU_PATH/install/first-run/battery-monitor.sh"
+  bash "$UBUNTU_PATH/install/first-run/recover-internal-monitor.sh"
+  bash "$UBUNTU_PATH/install/first-run/firewall.sh"
+  bash "$UBUNTU_PATH/install/first-run/dns-resolver.sh"
+  bash "$UBUNTU_PATH/install/first-run/gnome-theme.sh"
+  bash "$UBUNTU_PATH/install/first-run/swayosd.sh"
+  bash "$UBUNTU_PATH/install/first-run/gtk-primary-paste.sh"
+  bash "$UBUNTU_PATH/install/first-run/text-scaling.sh"
+  bash "$UBUNTU_PATH/install/first-run/elephant.sh"
+
   # Remove the temporary passwordless-sudo allowlist preflight/first-run-mode.sh wrote.
   # It is only needed for the steps above, so it goes away on the first login.
   sudo rm -f /etc/sudoers.d/first-run
+
+  bash "$UBUNTU_PATH/install/first-run/welcome.sh"
+  bash "$UBUNTU_PATH/install/first-run/wifi.sh"
 fi
