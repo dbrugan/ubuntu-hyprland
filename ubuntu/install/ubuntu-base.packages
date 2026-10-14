@@ -55,6 +55,8 @@ inetutils-tools
 jq
 lazygit
 less
+libglib2.0-bin
+libgtk-3-bin
 libnss-mdns
 libnotify-bin
 libsecret-1-0
@@ -103,6 +105,7 @@ tesseract-ocr
 typora
 ufw
 unzip
+upower
 uwsm
 waybar
 wireless-regdb
