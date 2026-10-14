@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# ub:summary=Remove the databases installed by ub-install-docker-dbs
+# ub:requires-sudo=true
+
+containers=("mysql8" "postgres18" "mariadb11" "redis" "mongodb" "mssql")
+
+if ! gum confirm "Remove all database containers and their volumes?"; then
+  echo "Cancelled"
+  exit 0
+fi
+
+for container in "${containers[@]}"; do
+  if ub-cmd-present docker && [[ $(docker ps -aq -f "name=^/${container}$") ]]; then
+    echo "Removing $container..."
+    sudo docker rm -f -v "$container"
+  fi
+done

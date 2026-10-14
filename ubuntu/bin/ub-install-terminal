@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# ub:summary=Install a terminal emulator and make it the default
+# ub:args=<alacritty|foot|ghostty|kitty>
+# ub:examples=ub install terminal alacritty | ub install terminal foot
+# ub:requires-sudo=true
+
+if (($# == 0)); then
+  echo "Usage: $(basename "$0") [alacritty|foot|ghostty|kitty]"
+  exit 1
+fi
+
+case "$1" in
+alacritty|foot|ghostty|kitty) ;;
+*)
+  echo "Unknown terminal: $1"
+  exit 1
+  ;;
+esac
+
+ub-pkg-add "$1" || exit 1
+
+# Refresh the launchers so the new terminal shows up in menus
+ub-refresh-applications
+
+ub-default-terminal "$1"
