@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# ub:summary=Update system packages with apt
+# ub:requires-sudo=true
+
+set -e
+
+echo -e "\e[32m\nUpdate system packages\e[0m"
+sudo apt update
+sudo apt upgrade -y

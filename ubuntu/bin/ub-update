@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# ub:summary=Update Ubuntu Hyprland and system packages
+# ub:args=[-y]
+# ub:examples=ub update | ub update -y
+# ub:requires-sudo=true
+
+set -e
+
+# Run inside a PTY so apt keeps showing download progress while still logging
+# the full session for later analysis.
+if [[ -z ${UBUNTU_UPDATE_LOGGED:-} ]]; then
+  script_command=$(printf '%q ' "$0" "$@")
+  exec env UBUNTU_UPDATE_LOGGED=1 script -qefc "$script_command" "/tmp/ub-update.log"
+fi
+
+trap 'echo ""; echo -e "\033[0;31mSomething went wrong during the update!\n\nPlease review the output above carefully, correct the error, and retry the update.\033[0m"' ERR
+
+if [[ $1 == "-y" ]] || ub-update-confirm; then
+  ub-snapshot create || (($? == 127))
+  ub-update-git
+  ub-update-perform
+fi

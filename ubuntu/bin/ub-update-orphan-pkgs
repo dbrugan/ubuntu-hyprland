@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# ub:summary=Remove orphaned system packages after updates
+# ub:requires-sudo=true
+
+# apt marks automatically-installed packages no longer required as autorovable
+if [[ -n $(apt-mark showauto 2>/dev/null | grep -v "^apt-mark" | head -1) ]]; then
+  echo -e "\e[32m\nRemove orphan system packages\e[0m"
+  sudo apt autoremove -y
+  echo
+fi

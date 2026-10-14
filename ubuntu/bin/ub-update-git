@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# ub:summary=Pull the latest Ubuntu Hyprland git changes
+
+set -e
+
+UBUNTU_SHARE="${UBUNTU_PATH:-$HOME/.local/share/ubuntu-hyprland}"
+
+echo -e "\e[32mUpdate Ubuntu Hyprland\e[0m"
+
+ub-update-time
+
+# Suppress Hyprland config errors while git updates config files mid-pull
+hyprctl keyword debug:suppress_errors true &>/dev/null || true
+
+git -C "$UBUNTU_SHARE" pull --autostash
+git -C "$UBUNTU_SHARE" --no-pager diff --check || git -C "$UBUNTU_SHARE" reset --merge
+
+hyprctl reload &>/dev/null || true

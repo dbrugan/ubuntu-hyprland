@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# ub:summary=Print the installed Ubuntu Hyprland version
+
+UBUNTU_SHARE="${UBUNTU_PATH:-$HOME/.local/share/ubuntu-hyprland}"
+
+cat "$UBUNTU_SHARE/version"

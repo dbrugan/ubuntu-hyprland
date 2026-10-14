@@ -1,0 +1,45 @@
+#!/bin/bash
+
+# ub:summary=Create or restore system snapshots with snapper
+# ub:args=<create|restore>
+# ub:requires-sudo=true
+
+set -e
+
+COMMAND="$1"
+
+if [[ -z $COMMAND ]]; then
+  echo "Usage: $(basename "$0") <create|restore>" >&2
+  exit 1
+fi
+
+if ! ub-cmd-present snapper; then
+  exit 127 # ub-update uses this to ignore the step when snapper is unavailable
+fi
+
+case "$COMMAND" in
+create)
+  DESC="$(ub-version)"
+
+  echo -e "\e[32mCreate system snapshot\e[0m"
+
+  mapfile -t CONFIGS < <(sudo snapper --csvout list-configs | awk -F, 'NR>1 {print $1}')
+
+  for config in "${CONFIGS[@]}"; do
+    sudo snapper -c "$config" create -c number -d "$DESC"
+    sudo snapper -c "$config" cleanup number
+  done
+  echo
+  ;;
+restore)
+  if ! ub-cmd-present limine-snapper-restore; then
+    echo "Error: limine-snapper-restore is not installed" >&2
+    exit 1
+  fi
+  sudo limine-snapper-restore
+  ;;
+*)
+  echo "Usage: $(basename "$0") <create|restore>" >&2
+  exit 1
+  ;;
+esac
