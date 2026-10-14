@@ -287,6 +287,17 @@ These pieces are intentional scaffolding, not breakage:
   ported and never writes that file, and `install-voxtype.hook` is dropped
   because voxtype is not ported. `firewall.sh` skips the Docker rules when
   `ufw-docker` is absent, since it is not in the Ubuntu archive.
+- `bin/` carries the update and repair lifecycle: `ub-update` (snapshot, git,
+  apt, pacstall, prune, post-update hook, restart prompts), `ub-reinstall`,
+  `ub-snapshot`, `ub-version`, `ub-state`, and the `ub-refresh-*` family.
+  Two things are deliberately absent. `ub-migrate`/`ub-dev-add-migration`
+  never existed here; see `# Migrations`. `ub-upload-log` is not ported because
+  it posts to omarchy.org, which is not this project's service.
+- `ub-refresh-config` is the recovery path for `config.sh`'s copy. It backs up,
+  replaces, prints the diff, and drops the backup when nothing changed. Do not
+  replace it with a plain copy: that is the only way back from a re-run.
+- The update pipeline has no AUR or migration step. `ub-update-pacstall` covers
+  what `pacman -Syua` did upstream, and there is no migration runner.
 - Theming is minimal by design; see `# Theming`. `config/all.sh` does
   not reference a `theme.sh`.
 - `install/packaging/webapps.sh` and the `ub-launch-webapp` /
@@ -299,6 +310,9 @@ These pieces are intentional scaffolding, not breakage:
   so re-running the installer discards hand edits to `~/.config/hypr/*.conf`.
   Upstream has the same line and answers it with `omarchy-refresh-config`,
   which is not ported.
+- `install/config/config.sh` copies `config/` over `~/.config/` unconditionally,
+  so re-running the installer discards hand edits to `~/.config/hypr/*.conf`.
+  Answer it with `ub-refresh-config`, which is ported and backs up first.
 - The login stage does not set up hibernation. Upstream's `hibernation.sh` is
   not ported: it calls `omarchy-hibernation-setup`, and hibernation is
   intentionally omitted to match the target spec (no swap, zram enabled).
