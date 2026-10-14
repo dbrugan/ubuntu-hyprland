@@ -1,0 +1,40 @@
+@define-color background #eff1f5;
+@define-color foreground #4c4f69;
+@define-color accent #1e66f5;
+@define-color selection #dce0e8;
+@define-color muted #9ca0b0;
+
+* {
+  background-color: transparent;
+  color: @foreground;
+  border: none;
+  font-family: "JetBrains Mono Nerd Font";
+  font-size: 11px;
+}
+
+#workspaces button {
+  color: @muted;
+}
+
+#workspaces button.active {
+  color: @accent;
+}
+
+#clock,
+#battery,
+#cpu,
+#memory,
+#temperature,
+#network,
+#backlight {
+  color: @foreground;
+  padding: 0 8px;
+}
+
+#battery.warning {
+  color: @yellow;
+}
+
+#battery.critical {
+  color: @red;
+}

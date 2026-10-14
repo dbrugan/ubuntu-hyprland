@@ -1,0 +1,36 @@
+@define-color background #1a1b26;
+@define-color foreground #a9b1d6;
+@define-color accent #7aa2f7;
+@define-color selection #7aa2f7;
+@define-color muted #787c99;
+
+#window {
+  background-color: @background;
+  color: @foreground;
+  border: 2px solid @accent;
+  border-radius: 12px;
+}
+
+#input {
+  background-color: transparent;
+  color: @foreground;
+  border: none;
+}
+
+#entry {
+  padding: 6px 10px;
+}
+
+#entry.selected,
+#entry:hover {
+  background-color: @selection;
+  color: @background;
+}
+
+#text-section {
+  color: @accent;
+}
+
+#list-empty {
+  color: @muted;
+}
