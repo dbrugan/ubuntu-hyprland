@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # ub:summary=Set the default terminal used by xdg-terminal-exec
-# ub:args=[alacritty]
-# ub:examples=ub default terminal alacritty
+# ub:args=[alacritty|foot|ghostty|kitty]
+# ub:examples=ub default terminal alacritty | ub default terminal foot
 
 if (($# == 0)); then
   grep -vE '^($|#)' ~/.config/xdg-terminals.list 2>/dev/null | head -n 1
@@ -11,8 +11,11 @@ fi
 
 case "$1" in
 alacritty) desktop_id="Alacritty.desktop"; name="Alacritty" ;;
+foot) desktop_id="foot.desktop"; name="foot" ;;
+ghostty) desktop_id="com.mitchellh.ghostty.desktop"; name="Ghostty" ;;
+kitty) desktop_id="kitty.desktop"; name="kitty" ;;
 *)
-  echo "Usage: $(basename "$0") <alacritty>" >&2
+  echo "Usage: $(basename "$0") <alacritty|foot|ghostty|kitty>" >&2
   exit 1
   ;;
 esac
