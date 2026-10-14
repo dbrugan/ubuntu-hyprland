@@ -271,8 +271,22 @@ These pieces are intentional scaffolding, not breakage:
   sddm run from `all.sh`. Upstream's `hibernation.sh` is deliberately not
   ported; see the bullets below.
 - `config/` holds the ported Hyprland tree (`config/hypr/`), the Waybar
-  config (`config/waybar/`), and the uwsm session env (`config/uwsm/`).
-  The rest of upstream's `config/` is not ported.
+  config (`config/waybar/`), the uwsm session env (`config/uwsm/`), and
+  defaults for the apps the desktop actually launches or offers: `mako`,
+  `fcitx5` plus its `environment.d` variables, `alacritty`, `starship`, and
+  `tmux`. Terminal, editor, and browser stacks are still unported.
+- `themes/` ships Tokyo Night and Catppuccin Latte. Each theme carries the
+  files the desktop sources directly (`hyprland.conf`, `hyprlock.conf`,
+  `waybar.css`, `walker.css`, `gum.env.conf`, `colors.toml`, `backgrounds/`),
+  pre-rendered rather than templated, so `ub-theme-set` stays a directory
+  swap. Keep exactly one `background` and one `foreground` line at the start
+  of a key in `colors.toml`: `ub-plymouth-set-by-theme` greps those prefixes
+  and passes every match to `ub-plymouth-set` as separate arguments.
+- `install/first-run/` is ported and driven by `ub-first-run`. Upstream's
+  `cleanup-reboot-sudoers.sh` is dropped because `allow-reboot.sh` is not
+  ported and never writes that file, and `install-voxtype.hook` is dropped
+  because voxtype is not ported. `firewall.sh` skips the Docker rules when
+  `ufw-docker` is absent, since it is not in the Ubuntu archive.
 - Theming is minimal by design; see `# Theming`. `config/all.sh` does
   not reference a `theme.sh`.
 - `install/packaging/webapps.sh` and the `ub-launch-webapp` /
