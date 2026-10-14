@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# ub:summary=Shut down after closing application windows
+# ub:examples=ub shutdown | ub system shutdown
+
+ub-state clear re*-required
+
+# Detached from the terminal so it survives the windows closing below
+nohup bash -c "sleep 2 && systemctl poweroff --no-wall" >/dev/null 2>&1 &
+
+ub-hyprland-window-close-all
+sleep 1 # Allow apps like Firefox to shut down correctly
