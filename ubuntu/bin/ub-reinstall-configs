@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# ub:summary=Reset all Ubuntu Hyprland user configs to the shipped defaults
+# ub:requires-sudo=true
+
+set -e
+
+UBUNTU_SHARE="${UBUNTU_PATH:-$HOME/.local/share/ubuntu-hyprland}"
+
+if (( EUID == 0 )); then
+  echo "Error: This script should not be run as root"
+  exit 1
+fi
+
+echo "Resetting all Ubuntu Hyprland configs"
+cp -R "$UBUNTU_SHARE"/config/* ~/.config/
+cp "$UBUNTU_SHARE"/default/bashrc ~/.bashrc
+
+# User themes are overlays on top of the shipped ones, so drop those too
+rm -rf ~/.config/ubuntu/themes
+
+ub-refresh-limine
+ub-plymouth-reset

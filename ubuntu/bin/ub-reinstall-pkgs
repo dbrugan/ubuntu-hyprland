@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# ub:summary=Ensure every package in the base list is installed
+# ub:requires-sudo=true
+
+set -e
+
+UBUNTU_SHARE="${UBUNTU_PATH:-$HOME/.local/share/ubuntu-hyprland}"
+packages_file="$UBUNTU_SHARE/install/ubuntu-base.packages"
+
+mapfile -t apt_packages < <(awk '/^# --- pacstall ---$/ { exit } !/^#/ && NF' "$packages_file")
+mapfile -t pacstall_packages < <(awk '/^# --- pacstall ---$/ { section = "pacstall"; next } section == "pacstall" && !/^#/ && NF' "$packages_file")
+
+ub-pkg-add "${apt_packages[@]}"
+ub-pkg-pacstall-add "${pacstall_packages[@]}"
