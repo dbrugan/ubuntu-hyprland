@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# ub:summary=List available themes
+# ub:group=theme
+# ub:name=list
+# ub:examples=ub theme list | ub theme set "Tokyo Night"
+
+UBUNTU_SHARE="${UBUNTU_PATH:-$HOME/.local/share/ubuntu-hyprland}"
+
+{
+  find "$HOME/.config/ubuntu/themes/" -mindepth 1 -maxdepth 1 \( -type d -o -type l \) -printf '%f\n' 2>/dev/null
+  find "$UBUNTU_SHARE/themes/" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' 2>/dev/null
+} | sort -u | while read -r name; do
+  echo "$name" | sed -E 's/(^|-)([a-z])/\1\u\2/g; s/-/ /g'
+done
