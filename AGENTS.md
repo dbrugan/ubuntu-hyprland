@@ -271,10 +271,11 @@ These pieces are intentional scaffolding, not breakage:
   sddm run from `all.sh`. Upstream's `hibernation.sh` is deliberately not
   ported; see the bullets below.
 - `config/` holds the ported Hyprland tree (`config/hypr/`), the Waybar
-  config (`config/waybar/`), the uwsm session env (`config/uwsm/`), and
-  defaults for the apps the desktop actually launches or offers: `mako`,
-  `fcitx5` plus its `environment.d` variables, `alacritty`, `starship`, and
-  `tmux`. Terminal, editor, and browser stacks are still unported.
+  config (`config/waybar/`), the uwsm session env (`config/uwsm/`), a fontconfig
+  default for `ub-font-set`, and defaults for the apps the desktop actually
+  launches or offers: `mako`, `fcitx5` plus its `environment.d` variables,
+  `alacritty`, `starship`, and `tmux`. Terminal, editor, and browser stacks are
+  still unported.
 - `themes/` ships Tokyo Night and Catppuccin Latte. Each theme carries the
   files the desktop sources directly (`hyprland.conf`, `hyprlock.conf`,
   `waybar.css`, `walker.css`, `gum.env.conf`, `colors.toml`, `backgrounds/`),
@@ -307,6 +308,13 @@ These pieces are intentional scaffolding, not breakage:
   are refreshed by the `apt update` that `ub-update-system-pkgs` already runs.
   `update-without-idle` is likewise absent because upstream reduced it to a
   no-op, and `ub-update-perform` manages idle itself.
+- `setup-security-fido2` and `remove-security-fido2` are not ported. They edit
+  `pam_u2f.so` into `/etc/pam.d/sudo` and `polkit-1`, but Ubuntu 26.04 ships no
+  PAM module providing `pam_u2f.so` — only the `libfido2` libraries and
+  `fido2-tools`. The fingerprint equivalent is ported, and Ubuntu splits it
+  differently: `pam_fprintd.so` lives in `libpam-fprintd`, not `libfprint`.
+- `ub-debug` deliberately has no upload option. Upstream posts the log to
+  `logs.omarchy.org`, which is not this project's service.
 - Theming is minimal by design; see `# Theming`. `config/all.sh` does
   not reference a `theme.sh`.
 - `install/packaging/webapps.sh` and the `ub-launch-webapp` /
