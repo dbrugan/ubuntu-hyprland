@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# ub:summary=Reset the swayosd config to the shipped defaults and restart the server
+# ub:examples=ub refresh swayosd
+
+ub-refresh-config swayosd/config.toml
+ub-refresh-config swayosd/style.css
+ub-restart-swayosd
