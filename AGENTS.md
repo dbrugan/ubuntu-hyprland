@@ -337,6 +337,46 @@ These pieces are intentional scaffolding, not breakage:
 - `install/packaging/webapps.sh` and the `ub-launch-webapp` /
   `ub-launch-or-focus-webapp` helpers are not ported (webapps are
   intentionally omitted from this setup).
+- A set of optional third-party `install-*` / `remove-*` commands is
+  deliberately not ported. Each either needs a package this setup does not
+  carry, depends on a command already omitted above, or serves a workflow
+  outside the target spec:
+  - `install-dropbox` — Dropbox ships no official Linux client package; it is
+    out of scope for a desktop whose only cloud integration is what
+    `ub-install-tailscale` and Firefox already provide.
+  - `install/remove-gaming-{geforce-now,lutris,moonlight}` — `geforce-now`
+    downloads and runs a vendor `.bin` installer and calls
+    `omarchy-launch-browser`; `lutris` pulls the Arch wine stack
+    (`wine-staging`, `wine-mono`, `wine-gecko`, `umu-launcher`) and calls
+    `omarchy-install-gaming-gpu-lib32`; `moonlight` is a GameStream client.
+    None are part of this setup's package set.
+  - `install/remove-gaming-{xbox-cloud,xbox-controllers}` — `xbox-cloud` is
+    installed through `omarchy-webapp-install` and launched with
+    `omarchy-launch-webapp`, both omitted above because webapps are; the
+    controller pair installs the `xpadneo-dkms` module, which has no
+    counterpart in the Ubuntu archive. Grouped together since they are one
+    Xbox support surface upstream.
+  - `install-nordvpn` — installs the AUR-only `nordvpn-bin`, and this port has
+    no AUR path (see `ub-update-pacstall`); `ub-install-tailscale` is the
+    VPN story here.
+  - `install-vscode` — installs the AUR `visual-studio-code-bin` and then calls
+    `omarchy-theme-set-vscode`, which is excluded by `# Theming`. Its
+    `remove-browser` sibling stays unported for the same reason as the
+    browser itself.
+  - `install-zed` — installs the AUR `zed` / `omazed` packages and applies the
+    theme through `omazed setup`, same two blockers as VS Code.
+  - `install-once` — installs the AUR `once-bin` and enables
+    `once-background.service`; no AUR path, no service in the base set.
+  - `windows-vm` — drives a `dockurr/windows` container over Docker plus
+    `xfreerdp3`, well outside a btrfs/zram desktop install.
+  - `remove-gaming-minecraft` — has no upstream `install-` counterpart, so
+    there is nothing to port a removal for.
+- Still-open future work rather than deliberate omissions: `install-browser`,
+  `install-chromium-google-account`, and `install/remove-gaming-{gpu-lib32,
+  heroic,retroarch,steam}`. These have no blocking dependency identified and
+  are the next candidates if the optional-software surface grows. Note that
+  `install-gaming-gpu-lib32` is what `install-gaming-lutris` calls, so porting
+  Lutris later means porting it too.
 - `install/config/hardware/nvidia.sh` appends its NVIDIA environment block to
   `~/.config/uwsm/env` (sourced at login), following upstream's migration in
   commit `638e35fc` away from the never-sourced `config/hypr/envs.conf`.
@@ -407,3 +447,8 @@ These pieces are intentional scaffolding, not breakage:
   support would invite wiring them into menus and install stages that can never
   fire. The generic `ub-hw-match` (DMI string match) stays and covers the
   model-gated fixes that are ported.
+- The Apple display commands are omitted for the same reason as
+  `sudoless-asdcontrol.sh` above: `ub-brightness-display-apple` and
+  `ub-hyprland-monitor-focused-apple` both drive Apple Studio / XDR displays
+  through `asdcontrol`, which Ubuntu 26.04 does not package. Neither would
+  have anything to detect on hardware this setup supports.
