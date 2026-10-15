@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# ub:summary=Print when system packages were last upgraded
+
+history_log="/var/log/apt/history.log"
+
+if [[ ! -f $history_log ]]; then
+  echo "Unknown"
+  exit 1
+fi
+
+# apt writes one stanza per transaction, ending with a blank line. Take the
+# End-Date of the last stanza that actually changed something, since a plain
+# "apt update" records neither Install/Upgrade/Remove nor an End-Date.
+last_upgrade=$(awk '
+  /^End-Date:/ { end = substr($0, 11) }
+  /^(Upgrade|Install|Remove):/ { changed = 1 }
+  /^[[:space:]]*$/ {
+    if (changed && end != "") { print end; changed = 0 }
+    end = ""
+  }
+  END { if (changed && end != "") print end }
+' "$history_log" | tail -1)
+
+if [[ -z $last_upgrade ]]; then
+  echo "Unknown"
+  exit 1
+fi
+
+date -d "$last_upgrade" "+%A, %B %d %Y at %H:%M"
