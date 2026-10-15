@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# ub:summary=Update system firmware using fwupd
+# ub:requires-sudo=true
+
+set -e
+echo -e "\e[32mUpdate Firmware\e[0m"
+
+if ub-cmd-missing fwupdmgr; then
+  ub-pkg-add fwupd
+fi
+
+fwupdmgr refresh --force
+sudo fwupdmgr update

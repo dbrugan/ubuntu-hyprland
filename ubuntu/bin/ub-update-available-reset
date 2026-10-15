@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# ub:summary=Ensure the Waybar update indicator is removed
+# ub:hidden=true
+
+pkill -RTMIN+7 waybar
+exit 0

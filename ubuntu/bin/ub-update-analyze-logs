@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# ub:summary=Check the update log for known failure conditions
+
+update_log="/tmp/ub-update.log"
+[[ -f $update_log ]] || exit 0
+
+# Our UKI hooks run as dpkg kernel hooks, and a failure there leaves the boot
+# menu pointing at a UKI that was never rebuilt.
+if grep -q "zz-ubuntu-ukify" "$update_log" && grep -qE "zz-ubuntu-ukify.*(error|Error|failed|returned non-zero)" "$update_log"; then
+  echo -e '\e[31mError: the UKI build hook reported a failure. Review the log before rebooting, or the boot entry may point at a stale image.\e[0m'
+  echo
+fi
+
+# A failed apt transaction leaves the package manager mid-state
+if grep -qE "^E: " "$update_log"; then
+  echo -e '\e[31mError: apt reported errors during the update. Run "apt update && apt upgrade" to recover.\e[0m'
+  echo
+fi
