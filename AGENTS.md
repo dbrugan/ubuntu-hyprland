@@ -378,6 +378,17 @@ These pieces are intentional scaffolding, not breakage:
   translated: it targets CRDA's `/etc/conf.d/wireless-regdom`, and Ubuntu has
   dropped CRDA without a documented equivalent config path for iwd.
 - The hardware-specific packaging scripts (`asus-rog.sh`, `framework16.sh`,
-  `surface.sh`, `dell-xps-touchpad-haptics.sh`) and their `ub-hw-*`
-  detection helpers are not ported; packages they depend on are not available
-  in Ubuntu 26.04.
+  `surface.sh`, `dell-xps-touchpad-haptics.sh`) are not ported; every package
+  they install (`asusctl`, `qmk-hid`, `linux-firmware-marvell`,
+  `dell-xps-touchpad-haptics`, …) is absent from Ubuntu 26.04.
+- The vendor `install/config/hardware/` trees (`intel/`, `asus/`,
+  `framework/`, `apple/`, `lenovo/`) are not ported either: the package-backed
+  fixes have nothing to install, and the package-free ones were triaged out
+  with them rather than carried without their detectors.
+- The vendor `ub-hw-*` detection helpers (`hw-intel*`, `hw-asus-*`,
+  `hw-framework16`, `hw-surface`, `hw-dell-xps-*`, `hw-hybrid-gpu`, `hw-vulkan`)
+  are deliberately omitted as well. Each exists upstream only to gate one of
+  the scripts above, and carrying detectors for hardware this setup does not
+  support would invite wiring them into menus and install stages that can never
+  fire. The generic `ub-hw-match` (DMI string match) stays and covers the
+  model-gated fixes that are ported.
