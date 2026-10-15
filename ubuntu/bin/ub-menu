@@ -201,9 +201,17 @@ show_setup_default_editor_menu() {
 }
 
 show_system_menu() {
-  case $(menu "System" "  Lock\n  Reboot\n  Shutdown") in
+  # Suspend is hidden when toggled off, which is how ub-toggle-suspend takes effect
+  local options="   Screensaver\n  Lock"
+  ! ub-toggle-enabled suspend-off && options="$options\n  Suspend"
+  options="$options\n  Logout\n  Restart\n  Shutdown"
+
+  case $(menu "System" "$options") in
+  *Screensaver*) ub-launch-screensaver force ;;
   *Lock*) ub-system-lock ;;
-  *Reboot*) systemctl reboot ;;
+  *Suspend*) systemctl suspend ;;
+  *Logout*) ub-system-logout ;;
+  *Restart*) ub-system-reboot ;;
   *Shutdown*) systemctl poweroff ;;
   *) show_main_menu ;;
   esac
