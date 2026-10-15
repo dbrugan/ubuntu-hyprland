@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# ub:summary=Install Helix
+# ub:examples=ub install helix
+
+echo "Installing Helix..."
+
+# Ubuntu's archive ships Helix as "hx", matching the upstream binary name.
+ub-pkg-add hx || exit 1
+
+# Only seed a config.toml if the user does not already have one. The theme line
+# is left on Helix's own default: this port does not render per-app theme
+# files, so there is no ubuntu theme file for Helix to point at.
+if [[ ! -f ~/.config/helix/config.toml ]]; then
+  mkdir -p ~/.config/helix
+  cat >~/.config/helix/config.toml <<'EOF'
+editor = { movement = "helix" }
+EOF
+fi
+
+# Arch-based distros ship Helix as 'helix' rather than upstream's 'hx'; Ubuntu
+# uses 'hx' already, so this alias is only useful when the other name is absent.
+if ! grep -q '^alias helix="hx"' ~/.bashrc 2>/dev/null; then
+  echo 'alias helix="hx"' >>~/.bashrc
+fi

@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# ub:summary=Install the Tailscale mesh VPN service
+# ub:requires-sudo=true
+
+set -e
+
+echo -e "\nInstalling Tailscale..."
+
+# Tailscale is not in the Ubuntu archive, so add their repository first,
+# following https://tailscale.com/kb/1031/install/linux.
+if ! ub-cmd-present tailscale; then
+  curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/noble.noarmor.gpg |
+    sudo tee /usr/share/keyrings/tailscale-archive-keyring.gpg >/dev/null
+  curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/noble.tailscale-keyring.list |
+    sudo tee /etc/apt/sources.list.d/tailscale.list >/dev/null
+  sudo apt update
+fi
+
+ub-pkg-add tailscale || exit 1
+
+echo -e "\nStarting Tailscale..."
+sudo systemctl enable --now tailscaled.service
+sudo tailscale up --accept-routes
+
+echo -e "\nManage your tailnet at https://login.tailscale.com/admin/machines"
