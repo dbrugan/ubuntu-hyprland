@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# ub:summary=Reset the fastfetch config to the shipped default
+# ub:examples=ub refresh fastfetch
+
+ub-refresh-config fastfetch/config.jsonc
