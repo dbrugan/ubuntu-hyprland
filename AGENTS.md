@@ -1,7 +1,8 @@
 # Project Overview
 
 This repo is a custom Ubuntu setup using Hyprland and Quickshell, based on
-Omarchy 3.8.4. It is **not** a 1:1 Omarchy port, not a full-fledged distro, and
+Omarchy. The port was built against 3.8.4 and now tracks `v4.0.4`. It is
+**not** a 1:1 Omarchy port, not a full-fledged distro, and
 not an ISO: it is a manually installed (debootstrap + Limine + btrfs) Ubuntu LTS
 with a Hyprland/Quickshell desktop.
 
@@ -29,12 +30,12 @@ standard security maintenance are out of scope.
 
 # Repo Layout
 
-- `omarchy/` - the upstream Omarchy reference, pinned to the `v3.8.4` release
-  tag (detached HEAD at `8fcc9d60`). Read-only: never edit this directory.
+- `omarchy/` - the upstream Omarchy reference, pinned to the `v4.0.4` release
+  tag (detached HEAD at `c668141e`). Read-only: never edit this directory.
   Consult it for conventions and patterns to port. Upstream's default branch
-  tracks a moving alpha, so re-pin with `git -C omarchy checkout v3.8.4`
-  rather than tracking master. Note its `version` file reads `3.8.3`: that is
-  an upstream tagging quirk, not a different release.
+  tracks a moving alpha, so re-pin with `git -C omarchy checkout v4.0.4`
+  rather than tracking master. Note its `version` file reads `4.0.0.alpha`:
+  that is an upstream tagging quirk, not a different release.
 - `ubuntu/` - the actual work: installer, bin commands, configs.
 - `README.md` - project goals and target-system spec (btrfs subvolumes, zram,
   no swap, network-manager default, minimum tty install).

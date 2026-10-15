@@ -1,6 +1,6 @@
 # Omarchy to Ubuntu
 
-this project aims to write a custom ubuntu setup using hyprland and quickshell, using as a base Omarchy (version 3.8.4)
+this project aims to write a custom ubuntu setup using hyprland and quickshell, using as a base Omarchy (version 4.0.4)
 
 ## What this project aims to
 
