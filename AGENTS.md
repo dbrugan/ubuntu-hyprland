@@ -377,6 +377,14 @@ These pieces are intentional scaffolding, not breakage:
   mkinitcpio configuration. `set-wireless-regdom.sh` is dropped rather than
   translated: it targets CRDA's `/etc/conf.d/wireless-regdom`, and Ubuntu has
   dropped CRDA without a documented equivalent config path for iwd.
+- DNS policy is `ub-dns`, ported from upstream v4.0.0's DNS command rather than
+  the v3.8.4 `setup-dns` it replaced there. It configures three layers because
+  NetworkManager is the network manager here: a `conf.d` global DNS entry,
+  per-connection `ipv4/ipv6.ignore-auto-dns`, and `systemd-resolved.conf`.
+  Writing only `resolved.conf`, as the 3.8.4 version did, would be silently
+  overridden by NM's per-connection settings. `install/first-run/dns-resolver.sh`
+  is separate and still needed: it only ensures `/etc/resolv.conf` points at the
+  resolved stub, which is plumbing rather than provider policy.
 - The hardware-specific packaging scripts (`asus-rog.sh`, `framework16.sh`,
   `surface.sh`, `dell-xps-touchpad-haptics.sh`) are not ported; every package
   they install (`asusctl`, `qmk-hid`, `linux-firmware-marvell`,
