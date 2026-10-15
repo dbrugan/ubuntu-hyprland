@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# ub:summary=Remove all the named packages from the system if they are installed (otherwise ignore).
+# ub:args=<packages...>
+# ub:requires-sudo=true
+
+installed=()
+for pkg in "$@"; do
+  if dpkg-query -W "$pkg" &>/dev/null; then
+    installed+=("$pkg")
+  fi
+done
+
+if (( ${#installed[@]} > 0 )); then
+  sudo apt remove -y "${installed[@]}"
+fi
