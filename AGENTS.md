@@ -283,10 +283,15 @@ These pieces are intentional scaffolding, not breakage:
   defaults for the apps the desktop actually launches or offers: `mako`,
   `fcitx5` plus its `environment.d` variables, `swayosd` plus its user service,
   `walker` with the elephant provider configs, `foot`/`ghostty`/`kitty`,
-  `alacritty`, `starship`, `tmux`, `btop`-adjacent TUIs (`lazygit` ships no
-  config upstream), `fastfetch`, `git`, `wiremix`, `opencode`, Typora themes,
-  and the share picker. `imv` and `xournalpp` are not installed, so their
-  configs are absent.
+  `alacritty`, `starship`, `tmux`, `fastfetch`, `git`, `wiremix`,
+  `opencode`, Typora themes, and the share picker. `imv` and `xournalpp`
+  are not installed, so their configs are absent.
+- `btop` and `lazygit` are installed and launched from the TUI bindings, but
+  ship no `config/`. Upstream's `config/btop/btop.conf` and
+  `config/lazygit/config.yml` are deliberately not carried: both apps fall
+  back to sane built-in defaults, and the port keeps app-specific tuning out
+  of its config tree. `ub-restart-btop` still exists, but with no ported
+  config there is nothing theme-specific for it to reload.
 - Per-app theme files are deliberately not rendered; see `# Theming`. Configs
   that upstream pulled their colors from a rendered per-app theme file ship
   with the colors spelled out instead, and say so in a header comment. The
