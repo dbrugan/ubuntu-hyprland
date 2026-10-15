@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# ub:summary=Remove preinstalled Ubuntu Hyprland applications (TUI wrappers, desktop applications, and selected packages)
+
+if gum confirm "Are you sure you want to remove all preinstalled TUI wrappers and desktop applications?"; then
+  echo -e "Removing preinstalled Ubuntu Hyprland applications...\n"
+
+  # Webapps are not part of this setup, so there is nothing to remove for them.
+  ub-tui-remove-all
+
+  cp ~/.config/hypr/bindings.conf ~/.config/hypr/bindings.conf.bak
+  cp "$UBUNTU_PATH/default/hypr/plain-bindings.conf" ~/.config/hypr/bindings.conf
+  hyprctl reload
+
+  # Remove npx stubs
+  rm -f ~/.local/bin/codex ~/.local/bin/gemini ~/.local/bin/copilot \
+    ~/.local/bin/opencode ~/.local/bin/playwright-cli ~/.local/bin/pi
+
+  # Package names here are the Ubuntu equivalents of upstream's list.
+  ub-pkg-remove \
+    typora \
+    libreoffice-fresh \
+    xournalpp \
+    pinta \
+    obsidian \
+    obs-studio \
+    kdenlive \
+    lazydocker \
+    opencode \
+    claude-code
+fi
