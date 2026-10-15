@@ -108,3 +108,8 @@ ub refresh hyprland
 ub refresh walker
 ub refresh waybar
 ```
+
+These examples reflect the currently installed setup, which still uses
+Hyprland `.conf` files and the Waybar/Walker bar stack. The upstream reference
+is pinned at Omarchy v4.0.4, where those files are `.lua` and the bar is
+`omarchy-shell`; porting that migration will replace this list.

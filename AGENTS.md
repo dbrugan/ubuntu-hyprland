@@ -45,18 +45,25 @@ standard security maintenance are out of scope.
 Deeper instructions live in the Omarchy reference. Read the matching guide there
 before porting or extending that area:
 
-- `omarchy/default/omarchy-skill/SKILL.md` - Omarchy's own conventions,
+- `omarchy/default/agents/skills/omarchy/SKILL.md` - Omarchy's own conventions,
   including the privilege-escalation guidance referenced below
 - `omarchy/AGENTS.md` - upstream's guidance for working in the reference
+- `omarchy/agents/skills/` - per-topic contributor guides; read the matching one
+  before touching that area:
+  `command-metadata.md`, `install-scripts.md`, `shell-dev.md`, `icon-font.md`,
+  `acceptance-tests.md`, `visual-verification.md`
+- `omarchy/docs/` - upstream design notes worth reading before porting a
+  subsystem: `file-layout.md` (repo-to-filesystem mapping and the
+  seed/finalize/resync model), `theming.md`, `migrations.md`, `update-process.md`
 - `omarchy/install/` and `omarchy/bin/` - the source being ported; read these
   directly for conventions rather than looking for a per-topic guide
 
-`v3.8.4` ships a single consolidated skill at `default/omarchy-skill/SKILL.md`.
-The per-topic guides (`command-metadata.md`, `install-scripts.md`,
-`shell-dev.md`, `icon-font.md`, `acceptance-tests.md`,
-`visual-verification.md`) exist only from `v4.0.0` onward, under
-`agents/skills/`. This port follows its own conventions in this file instead;
-do not add task-guide references to files absent from the pinned tag.
+Up to `v3.8.4` these per-topic guides did not exist: that tag ships a single
+consolidated skill at `default/omarchy-skill/SKILL.md`, and `agents/skills/`
+only appears from `v4.0.0` onward. The pinned tag is `v4.0.4`, so the guides
+exist and are expected. This port still keeps its own conventions in this file
+where they diverge; the guides are the reference for upstream's patterns, not a
+mandate to adopt them.
 
 # Style
 
@@ -85,6 +92,12 @@ All commands start with `ub-`. Prefixes indicate purpose:
 - `theme-` - theme management
 - `update-` - update components
 
+This is a sample, not an exhaustive list: do not extend it here. The
+authoritative list lives in `GROUP_DESCRIPTIONS` in the dispatcher, and upstream
+`AGENTS.md` gives the same instruction for the same reason — a second exhaustive
+prefix list drifts. Note the upstream prefix set also shifts between releases
+(`npx` and `ac` were dropped in v4.0.0), so copying it wholesale is wrong too.
+
 Current `bin/` files (e.g. `ub-npx-install`, `ub-tui-install`) use a verb-last
 form. New commands should follow the verb-first prefix scheme above unless the
 command is one of the established helpers listed below.
@@ -92,12 +105,13 @@ command is one of the established helpers listed below.
 # Command Metadata
 
 Commands in `bin/` declare CLI metadata in comments near the top of the file.
-The router (in Omarchy, `bin/omarchy`; to be ported as the `ub` dispatcher)
-scans the first 80 lines for `# ub:key=value` metadata:
+The dispatcher (`ubuntu/bin/ub`, upstream `omarchy/bin/omarchy`) scans the first
+80 lines for `# ub:key=value` metadata. `ub:` is this port's rename of upstream's
+`omarchy:` prefix; the supported key set is otherwise identical:
 
 - `# ub:group=...` - override the command group inferred from the filename
 - `# ub:name=...` - override the command name inferred from the filename
-- `# ub:summary=...` - short help text (required for user-facing commands)
+- `# ub:summary=...` - short help text (expected for user-facing commands)
 - `# ub:args=...` - usage arguments
 - `# ub:examples=...` - examples separated with ` | `
 - `# ub:alias=...` / `# ub:aliases=...` - alternate routes
@@ -105,8 +119,11 @@ scans the first 80 lines for `# ub:key=value` metadata:
 - `# ub:requires-sudo=true` - mark commands that require sudo (`hidden` and
   `requires-sudo` must be `true` or omitted)
 
-The authoritative list of user-facing command groups lives in
-`GROUP_DESCRIPTIONS` in `bin/omarchy`. Keep it updated when adding a new command
+`hidden` and `requires-sudo` are the two keys the router rejects a `false` value
+for; every other key is free-form. A missing summary is not fatal — the router
+falls back to a generated one — but every user-facing command should carry one.
+
+Keep `GROUP_DESCRIPTIONS` in the dispatcher updated when adding a new command
 prefix users are meant to browse to, and consult it rather than maintaining a
 second exhaustive prefix list.
 
@@ -121,7 +138,12 @@ Example:
 # Runtime Environment
 
 - `$UBUNTU_PATH` (default `~/.local/share/ubuntu-hyprland`), `$UBUNTU_INSTALL`,
-  and `$UBUNTU_INSTALL_LOG_FILE` are exported by `install.sh`.
+  and `$UBUNTU_INSTALL_LOG_FILE` are exported by `ubuntu/install.sh`. This is a
+  local model with no upstream equivalent: v4.0.4 has deleted `install.sh` and
+  `boot.sh` entirely, and instead ships `omarchy` and `omarchy-settings` as
+  packages, with `OMARCHY_PATH` provided by the uwsm session environment rather
+  than exported by an installer. See `omarchy/docs/file-layout.md` for the
+  upstream mapping.
 - Use `$UBUNTU_PATH` / `$UBUNTU_INSTALL` instead of hardcoded
   `~/.local/share/ubuntu-hyprland` paths. Several install scripts still hardcode
   it; prefer the env vars in new code.
@@ -136,6 +158,7 @@ Use these instead of raw shell commands:
 - `ub-pkg-missing` / `ub-pkg-present` - check for packages (checks both apt and
   pacstall)
 - `ub-pkg-add` - install packages via apt
+- `ub-pkg-drop` - remove packages
 - `ub-pkg-pacstall-add` - install pacscripts via pacstall
 - `ub-notification-send` - send desktop notifications; do not call `notify-send` directly
 
@@ -146,19 +169,24 @@ dependencies or code that can run before the default package set is installed.
 
 Exceptions are allowed for package-helper scripts where the helper
 may not be available yet, where the helper itself is being implemented, or where
-direct package-manager behavior is required.
+direct package-manager behavior is required. Upstream also exempts migrations
+from the helper rules; this port has no migrations, so there is no such case.
 
 # Packaging
 
 - `install/ubuntu-base.packages` - one package per line, `#` comments and blank
-  lines ignored. This is the singular package list; split into base vs "other"
-  lists once the port grows.
+  lines ignored. This is the singular package list, where upstream v4.0.4 has
+  already split into `omarchy-base.packages` and `omarchy-other.packages` and
+  dropped `install/packaging/` entirely. Keep the single list until the port
+  actually grows; the split is about how much is installed by default, and ours
+  is not there yet.
 - Prefer `ub-pkg-add` for installing; it currently installs via apt and is
   expected to also route pacstall packages.
 - Write custom pacscripts for packages unavailable in Ubuntu repos.
-- TUI/npx installers (`ub-tui-install`, `ub-npx-install`) write `.desktop` files
-  and wrappers under `~/.local/`; keep their interactive vs
-  positional-argument behavior consistent.
+- The TUI installer (`ub-tui-install`) writes `.desktop` files and wrappers
+  under `~/.local/`; keep its interactive vs positional-argument behavior
+  consistent. `ub-npx-install` is a port-only holdover: upstream dropped the
+  `npx` group in v4.0.0.
 
 # Browsers
 
@@ -179,7 +207,7 @@ Ubuntu ships `firefox` as a snap-transition package (`1:1snap1`), so a plain
 
 - Draw the `sudo` line by whether the caller has a terminal to enter a password
   in; follow the Omarchy "Privilege Escalation" guidance
-  (`omarchy/default/omarchy-skill/SKILL.md`).
+  (`omarchy/default/agents/skills/omarchy/SKILL.md`).
 - The installer writes a limited passwordless-sudo allowlist to
   `/etc/sudoers.d/first-run` (see `install/preflight/first-run-mode.sh`). Do not
   broaden it beyond the listed commands.
@@ -190,7 +218,11 @@ Migrations are a deliberate deviation from Omarchy: they are not ported, and
 `omarchy-migrate` / `ub-dev-add-migration` will not exist here. Do not add a
 migration runner or `migrations/` directory. For state repair, use idempotent
 `apply-*`/`setup-*` commands or fold the repair into the `ub-update` path
-instead.
+instead. This is a smaller deviation than it looks: v4.0.4 reduced `migrations/`
+from 330 files to roughly 106 and moved the remaining ones behind
+`~/.local/state/omarchy/migrations/` markers, so `omarchy/docs/migrations.md`
+describes a much lighter model than the v3.8.4 one this port was written
+against.
 
 # Config Structure
 
@@ -210,29 +242,38 @@ directory, or the template-rendering and per-appsetter machinery
 (`omarchy-theme-set-templates`, `omarchy-theme-set-{foot,gnome,browser,vscode,obsidian,keyboard}`,
 the `color0-15` palette and theme-selection machinery do not apply).
 
-- Upstream's `theme.sh` carries Chromium-specific setup: it creates
-  `/etc/chromium/policies/managed` and clears `~/.config/chromium/SingletonLock`.
-  Porting it verbatim would drag in a browser this project does not use.
+- Upstream v4.0.4 replaced the single `install/config/theme.sh` with a pair:
+  `install/config/theme-system.sh` owns the staged render into
+  `~/.local/state/omarchy/current/`, while `install/user/theme.sh` does the
+  per-user setup. Both carry Chromium-specific work — a `SingletonLock` clear
+  and, via `install/config/browser-policy.sh`, managed policy files. Porting
+  either verbatim would drag in a browser this project does not use.
 - Any theming this project does have is our own, described under
   `# Config Structure`: `themes/*/colors.toml` with semantic color names, and
   `default/themed/*.tpl` templates.
 - The minimal local commands that the Elephant menus and Hypr configs depend
   on are in scope: `ub-theme-set` (atomic `~/.config/ubuntu/current` swap only),
   `ub-theme-bg-set`, and the `ub-plymouth-*` trio. Keep them free of template
-  rendering and per-app setters; theme content seeding is separate work.
+  rendering and per-app setters; theme content seeding is separate work. Note
+  that upstream's own `omarchy-shell` bar and menus read the rendered theme, so
+  a swap-only `ub-theme-set` will not follow upstream once the shell lands.
 
 # Refresh Pattern
 
 To copy a default config to user config with automatic backup:
 
 ```bash
-ub-refresh-config hypr/hyprlock.conf
+ub-refresh-config hypr/hyprland.conf
 ```
 
-This copies the default config to `~/.config/hypr/hyprlock.conf`. The argument
+This copies the default config to `~/.config/hypr/hyprland.conf`. The argument
 is interpolated into both paths and only checked with `[[ -e ]]`, so pass a
 plain relative path: a name containing `..` resolves and copies, landing outside
 `~/.config` rather than being rejected.
+
+Upstream v4.0.4 renamed most Hyprland configs from `.conf` to `.lua` and added
+`omarchy-refresh-shell` / `omarchy-refresh-herdr` while dropping the
+`waybar`/`walker`/`swayosd`/`hyprlock` refreshers along with those apps.
 
 # Tests
 
@@ -245,6 +286,9 @@ Automated tests are not ported yet. The Omarchy model to follow:
   `test/shell.d/base-test.sh` for shared assertions
 - Tests enforce that `bin/` never uses raw `command -v` or bare `notify-send`
   (helpers must be used)
+- Upstream also has `test/acceptance.d/`, a graphical suite that runs in a
+  disposable VM. It is out of scope here and deliberately excluded from
+  `./test/all`, matching upstream's own aggregate runner.
 
 # Git
 
@@ -277,7 +321,9 @@ These pieces are intentional scaffolding, not breakage:
 
 - `install/login/` is ported: plymouth, default-keyring, limine-snapper, and
   sddm run from `all.sh`. Upstream's `hibernation.sh` is deliberately not
-  ported; see the bullets below.
+  ported; see the bullets below. Upstream v4.0.4 narrowed `install/login/` to
+  just `all.sh` and `sddm.sh` and moved plymouth, default-keyring, and the
+  snapper setup to `install/user/`, `install/config/snapper.sh`, and `etc/`.
 - `config/` holds the ported Hyprland tree (`config/hypr/`), the Waybar
   config (`config/waybar/`), the uwsm session env (`config/uwsm/`), a fontconfig
   default for `ub-font-set`, hook samples under `config/ubuntu/hooks/`, and
@@ -286,7 +332,10 @@ These pieces are intentional scaffolding, not breakage:
   `walker` with the elephant provider configs, `foot`/`ghostty`/`kitty`,
   `alacritty`, `starship`, `tmux`, `fastfetch`, `git`, `wiremix`,
   `opencode`, Typora themes, and the share picker. `imv` and `xournalpp`
-  are not installed, so their configs are absent.
+  are not installed, so their configs are absent. Note that upstream v4.0.4 has
+  already dropped `waybar/`, `walker/`, `mako/`, `swayosd/`, `uwsm/`,
+  `fastfetch/`, `fontconfig/`, and `Typora` from `config/` in favour of
+  `shell/` and `default/`; this is the largest structural gap to close.
 - `btop` and `lazygit` are installed and launched from the TUI bindings, but
   ship no `config/`. Upstream's `config/btop/btop.conf` and
   `config/lazygit/config.yml` are deliberately not carried: both apps fall
@@ -305,18 +354,28 @@ These pieces are intentional scaffolding, not breakage:
   pre-rendered rather than templated, so `ub-theme-set` stays a directory
   swap. Keep exactly one `background` and one `foreground` line at the start
   of a key in `colors.toml`: `ub-plymouth-set-by-theme` greps those prefixes
-  and passes every match to `ub-plymouth-set` as separate arguments.
+  and passes every match to `ub-plymouth-set` as separate arguments. Upstream
+  v4.0.4 moved most of that rendered content into `default/themed/*.tpl`
+  (`hyprland.lua.tpl`, `shell.toml.tpl`, `gum_env.lua.tpl`, …) and shrank each
+  theme directory to `colors.toml` plus `icons.theme`, `neovim.lua`,
+  `vscode.json`, `keyboard.rgb`, `shell.lock.toml`, and `backgrounds/`.
 - `install/first-run/` is ported and driven by `ub-first-run`. Upstream's
   `cleanup-reboot-sudoers.sh` is dropped because `allow-reboot.sh` is not
   ported and never writes that file, and `install-voxtype.hook` is dropped
   because voxtype is not ported. `firewall.sh` skips the Docker rules when
-  `ufw-docker` is absent, since it is not in the Ubuntu archive.
+  `ufw-docker` is absent, since it is not in the Ubuntu archive. Upstream
+  v4.0.4 renamed the whole directory to `install/user/first-run/` and carries
+  a different set (`audio-tuning`, `enable-user-units`, `gnome-theme`,
+  `gtk-primary-paste`, `setup-agent.hook`, `setup-fingerprint.hook`,
+  `welcome`, `wifi`).
 - `bin/` carries the update and repair lifecycle: `ub-update` (snapshot, git,
   apt, pacstall, prune, post-update hook, restart prompts), `ub-reinstall`,
   `ub-snapshot`, `ub-version`, `ub-state`, and the `ub-refresh-*` family.
   Two things are deliberately absent. `ub-migrate`/`ub-dev-add-migration`
   never existed here; see `# Migrations`. `ub-upload-log` is not ported because
-  it posts to omarchy.org, which is not this project's service.
+  it posts to omarchy.org, which is not this project's service. Both upstream
+  counterparts still exist in v4.0.4 (`omarchy-migrate`,
+  `omarchy-dev-add-migration`, `omarchy-upload-log`).
 - `ub-refresh-config` is the recovery path for `config.sh`'s copy. It backs up,
   replaces, prints the diff, and drops the backup when nothing changed. Do not
   replace it with a plain copy: that is the only way back from a re-run.
@@ -326,11 +385,12 @@ These pieces are intentional scaffolding, not breakage:
   `version-branch`, and `version-channel` are not ported: this setup tracks a
   git branch plus apt, so `ub-update-available` compares local and remote HEAD
   rather than release tags, and `ub-version-pkgs` reports the last apt upgrade.
+  Note that v4.0.4 dropped `branch-set` upstream while keeping the other three.
 - Upstream's `update-keyring` is not ported. It maintains `archlinux-keyring`
   through `pacman-key`; Ubuntu's repository keys ship with `ubuntu-keyring` and
   are refreshed by the `apt update` that `ub-update-system-pkgs` already runs.
-  `update-without-idle` is likewise absent because upstream reduced it to a
-  no-op, and `ub-update-perform` manages idle itself.
+  `update-without-idle` is likewise absent, because v4.0.4 removed it upstream
+  entirely, and `ub-update-perform` manages idle itself.
 - `setup-security-fido2` and `remove-security-fido2` are not ported. They edit
   `pam_u2f.so` into `/etc/pam.d/sudo` and `polkit-1`, but Ubuntu 26.04 ships no
   PAM module providing `pam_u2f.so` — only the `libfido2` libraries and
@@ -339,60 +399,69 @@ These pieces are intentional scaffolding, not breakage:
 - `ub-debug` deliberately has no upload option. Upstream posts the log to
   `logs.omarchy.org`, which is not this project's service.
 - Theming is minimal by design; see `# Theming`. `config/all.sh` does
-  not reference a `theme.sh`.
+  not reference a `theme.sh` (upstream v4.0.4's `install/config/all.sh` runs
+  `theme-system.sh`, and the per-user half is `install/user/theme.sh`).
 - `install/packaging/webapps.sh` and the `ub-launch-webapp` /
   `ub-launch-or-focus-webapp` helpers are not ported (webapps are
-  intentionally omitted from this setup).
+  intentionally omitted from this setup). Upstream v4.0.4 deleted the whole
+  `install/packaging/` directory but still ships the `webapp-*` and
+  `launch-webapp` commands.
 - A set of optional third-party `install-*` / `remove-*` commands is
   deliberately not ported. Each either needs a package this setup does not
   carry, depends on a command already omitted above, or serves a workflow
   outside the target spec:
-  - `install-dropbox` — Dropbox ships no official Linux client package; it is
-    out of scope for a desktop whose only cloud integration is what
-    `ub-install-tailscale` and Firefox already provide.
-  - `install/remove-gaming-{geforce-now,lutris,moonlight}` — `geforce-now`
-    downloads and runs a vendor `.bin` installer and calls
-    `omarchy-launch-browser`; `lutris` pulls the Arch wine stack
-    (`wine-staging`, `wine-mono`, `wine-gecko`, `umu-launcher`) and calls
-    `omarchy-install-gaming-gpu-lib32`; `moonlight` is a GameStream client.
-    None are part of this setup's package set.
+  - `install-service-dropbox` (renamed from `install-dropbox` upstream in
+    v4.0.0) — Dropbox ships no official Linux client package, and v4.0.4's
+    version additionally registers a shell plugin via
+    `omarchy-plugin-enable omarchy.dropbox`. Out of scope for a desktop whose
+    only cloud integration is what `ub-install-tailscale` and Firefox already
+    provide.
+  - `install/remove-gaming-{geforce-now,lutris}` — `geforce-now` downloads and
+    runs a vendor `.bin` installer and calls `omarchy-launch-browser`;
+    `lutris` pulls the Arch wine stack (`wine-staging`, `wine-mono`,
+    `wine-gecko`, `umu-launcher`) and calls
+    `omarchy-install-gaming-gpu-lib32`. Neither is part of this setup's
+    package set. Upstream's `install/remove-gaming-moonlight` pair is gone in
+    v4.0.4, so there is nothing left to decline.
   - `install/remove-gaming-{xbox-cloud,xbox-controllers}` — `xbox-cloud` is
     installed through `omarchy-webapp-install` and launched with
     `omarchy-launch-webapp`, both omitted above because webapps are; the
     controller pair installs the `xpadneo-dkms` module, which has no
     counterpart in the Ubuntu archive. Grouped together since they are one
     Xbox support surface upstream.
-  - `install-nordvpn` — installs the AUR-only `nordvpn-bin`, and this port has
-    no AUR path (see `ub-update-pacstall`); `ub-install-tailscale` is the
-    VPN story here.
-  - `install-vscode` — installs the AUR `visual-studio-code-bin` and then calls
-    `omarchy-theme-set-vscode`, which is excluded by `# Theming`. Its
-    `remove-browser` sibling stays unported for the same reason as the
-    browser itself.
-  - `install-zed` — installs the AUR `zed` / `omazed` packages and applies the
-    theme through `omazed setup`, same two blockers as VS Code.
-  - `install-once` — installs the AUR `once-bin` and enables
-    `once-background.service`; no AUR path, no service in the base set.
+  - `install-service-nordvpn` (renamed from `install-nordvpn`) — installs the
+    AUR-only `nordvpn-bin`, and this port has no AUR path (see
+    `ub-update-pacstall`); `ub-install-tailscale` is the VPN story here.
+  - `install-editor-vscode` (renamed from `install-vscode`) — installs the
+    AUR `visual-studio-code-bin` and then calls `omarchy-theme-set-vscode`,
+    which is excluded by `# Theming`.
+  - `install-editor-zed` (renamed from `install-zed`) — installs the AUR `zed`
+    / `omazed` packages and applies the theme through `omazed setup`, same two
+    blockers as VS Code.
+  - `install-service-once` (renamed from `install-once`) — installs the AUR
+    `once-bin` and enables `once-background.service`; no AUR path, no service
+    in the base set.
   - `windows-vm` — drives a `dockurr/windows` container over Docker plus
     `xfreerdp3`, well outside a btrfs/zram desktop install.
   - `remove-gaming-minecraft` — has no upstream `install-` counterpart, so
     there is nothing to port a removal for.
 - Still-open future work rather than deliberate omissions: `install-browser`,
-  `install-chromium-google-account`, and `install/remove-gaming-{gpu-lib32,
-  heroic,retroarch,steam}`. These have no blocking dependency identified and
-  are the next candidates if the optional-software surface grows. Note that
-  `install-gaming-gpu-lib32` is what `install-gaming-lutris` calls, so porting
-  Lutris later means porting it too.
+  `install-chromium-google-account`, `remove-browser`, and
+  `install/remove-gaming-{gpu-lib32,heroic,retroarch,steam}`. These have no
+  blocking dependency identified and are the next candidates if the
+  optional-software surface grows. Note that `install-gaming-gpu-lib32` is what
+  `install-gaming-lutris` calls, so porting Lutris later means porting it too.
 - `install/config/hardware/nvidia.sh` appends its NVIDIA environment block to
   `~/.config/uwsm/env` (sourced at login), following upstream's migration in
-  commit `638e35fc` away from the never-sourced `config/hypr/envs.conf`.
-- `install/config/config.sh` copies `config/` over `~/.config/` unconditionally,
-  so re-running the installer discards hand edits to `~/.config/hypr/*.conf`.
-  Upstream has the same line and answers it with `omarchy-refresh-config`,
-  which is not ported.
+  commit `638e35fc` away from the never-sourced `config/hypr/envs.conf`. Upstream
+  v4.0.4 has since moved this to `install/hardware/nvidia.sh` and hands the
+  per-session env to `default/hypr/nvidia.lua`.
 - `install/config/config.sh` copies `config/` over `~/.config/` unconditionally,
   so re-running the installer discards hand edits to `~/.config/hypr/*.conf`.
   Answer it with `ub-refresh-config`, which is ported and backs up first.
+  Upstream v4.0.4 deleted `config.sh` entirely in favour of the
+  seed/finalize/resync model described in `omarchy/docs/file-layout.md`, so
+  there is no upstream line to match any more.
 - The login stage does not set up hibernation. Upstream's `hibernation.sh` is
   not ported: it calls `omarchy-hibernation-setup`, and hibernation is
   intentionally omitted to match the target spec (no swap, zram enabled).
@@ -407,11 +476,14 @@ These pieces are intentional scaffolding, not breakage:
   and the `libalpm` re-enable step is dropped since dpkg kernel hooks always run.
   Two constraints are worth keeping in mind when editing it. First, exactly two
   things write `/boot/limine.conf`: this script's kernel entries and
-  `limine-snapper-sync`'s snapshot entries. Do not add `limine-entry-tool`
-  without first disabling its `/etc/boot/hooks` automation, or it becomes a
-  third writer. Second, UKIs are built unsigned, which is sound only because
-  `install/preflight/guard.sh` hard-aborts on Secure Boot being enabled.
+  `limine-snapper-sync`'s snapshot entries. Do not adopt upstream v4.0.4's
+  `limine-entry-tool` (it ships in `etc/limine-entry-tool.d/` and has
+  `/etc/boot/hooks` automation) without first disabling that automation, or it
+  becomes a third writer. Second, UKIs are built unsigned, which is sound only
+  because `install/preflight/guard.sh` hard-aborts on Secure Boot being enabled.
 - `install/default/snapper/root` is installed by `login/limine-snapper.sh`.
+  Upstream v4.0.4 keeps the template at `default/snapper/root` and installs it
+  from `install/config/snapper.sh`.
 - Several upstream `install/config/` scripts are dropped as Arch-only, rather
   than ported and left inert. `increase-lockout-limit.sh` rewrites
   `pam_faillock` lines in `/etc/pam.d/system-auth`, but Ubuntu ships
@@ -422,14 +494,18 @@ These pieces are intentional scaffolding, not breakage:
   Ubuntu's `powerprofilesctl` already ships an absolute `#!/usr/bin/python3`.
   `sudoless-asdcontrol.sh` is Apple-display brightness, covered by the vendor
   hardware gap below. `omarchy-ai-skill.sh` and `pi.sh` install Omarchy's own
-  skill and pi-agent extension, neither of which this port carries.
-- Of upstream's eight generic hardware fixes, three are ported: `network.sh`
+  skill and pi-agent extension, neither of which this port carries. The first
+  three still exist upstream in v4.0.4; the last three were dropped upstream
+  too.
+- Of upstream's generic hardware fixes, three are ported: `network.sh`
   (enables iwd and masks `systemd-networkd-wait-online`), `fix-fkeys.sh`, and
   `fix-synaptic-touchpad.sh`. The rest need packages absent from the archive
   (`broadcom-wl`, `yt6801-dkms`, `tuxedo-drivers-nocompatcheck-dkms`) or
   mkinitcpio configuration. `set-wireless-regdom.sh` is dropped rather than
   translated: it targets CRDA's `/etc/conf.d/wireless-regdom`, and Ubuntu has
-  dropped CRDA without a documented equivalent config path for iwd.
+  dropped CRDA without a documented equivalent config path for iwd. Upstream
+  v4.0.4 moved all of these from `install/config/hardware/` to a top-level
+  `install/hardware/` and grew the set well past the original eight.
 - DNS policy is `ub-dns`, ported from upstream v4.0.0's DNS command rather than
   the v3.8.4 `setup-dns` it replaced there. It configures three layers because
   NetworkManager is the network manager here: a `conf.d` global DNS entry,
@@ -437,15 +513,19 @@ These pieces are intentional scaffolding, not breakage:
   Writing only `resolved.conf`, as the 3.8.4 version did, would be silently
   overridden by NM's per-connection settings. `install/first-run/dns-resolver.sh`
   is separate and still needed: it only ensures `/etc/resolv.conf` points at the
-  resolved stub, which is plumbing rather than provider policy.
+  resolved stub, which is plumbing rather than provider policy. Upstream v4.0.4
+  has no `install/first-run/` at all, so there is no counterpart to point at.
 - The hardware-specific packaging scripts (`asus-rog.sh`, `framework16.sh`,
   `surface.sh`, `dell-xps-touchpad-haptics.sh`) are not ported; every package
   they install (`asusctl`, `qmk-hid`, `linux-firmware-marvell`,
-  `dell-xps-touchpad-haptics`, …) is absent from Ubuntu 26.04.
+  `dell-xps-touchpad-haptics`, …) is absent from Ubuntu 26.04. In v4.0.4 these
+  live in `install/hardware/` rather than `install/packaging/`.
 - The vendor `install/config/hardware/` trees (`intel/`, `asus/`,
   `framework/`, `apple/`, `lenovo/`) are not ported either: the package-backed
   fixes have nothing to install, and the package-free ones were triaged out
-  with them rather than carried without their detectors.
+  with them rather than carried without their detectors. Upstream v4.0.4 moved
+  them to `install/hardware/{intel,asus,framework,apple,lenovo}/` and grew
+  each set.
 - The vendor `ub-hw-*` detection helpers (`hw-intel*`, `hw-asus-*`,
   `hw-framework16`, `hw-surface`, `hw-dell-xps-*`, `hw-hybrid-gpu`, `hw-vulkan`)
   are deliberately omitted as well. Each exists upstream only to gate one of
