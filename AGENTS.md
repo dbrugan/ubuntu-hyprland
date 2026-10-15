@@ -272,10 +272,20 @@ These pieces are intentional scaffolding, not breakage:
   ported; see the bullets below.
 - `config/` holds the ported Hyprland tree (`config/hypr/`), the Waybar
   config (`config/waybar/`), the uwsm session env (`config/uwsm/`), a fontconfig
-  default for `ub-font-set`, and defaults for the apps the desktop actually
-  launches or offers: `mako`, `fcitx5` plus its `environment.d` variables,
-  `alacritty`, `starship`, and `tmux`. Terminal, editor, and browser stacks are
-  still unported.
+  default for `ub-font-set`, hook samples under `config/ubuntu/hooks/`, and
+  defaults for the apps the desktop actually launches or offers: `mako`,
+  `fcitx5` plus its `environment.d` variables, `swayosd` plus its user service,
+  `walker` with the elephant provider configs, `foot`/`ghostty`/`kitty`,
+  `alacritty`, `starship`, `tmux`, `btop`-adjacent TUIs (`lazygit` ships no
+  config upstream), `fastfetch`, `git`, `wiremix`, `opencode`, Typora themes,
+  and the share picker. `imv` and `xournalpp` are not installed, so their
+  configs are absent.
+- Per-app theme files are deliberately not rendered; see `# Theming`. Configs
+  that upstream pulled their colors from a rendered per-app theme file ship
+  with the colors spelled out instead, and say so in a header comment. The
+  affected files are `config/{foot,ghostty,kitty}`, `config/swayosd/style.css`,
+  and `config/hyprland-preview-share-picker/config.yaml`. Switching themes
+  will not recolor them.
 - `themes/` ships Tokyo Night and Catppuccin Latte. Each theme carries the
   files the desktop sources directly (`hyprland.conf`, `hyprlock.conf`,
   `waybar.css`, `walker.css`, `gum.env.conf`, `colors.toml`, `backgrounds/`),
