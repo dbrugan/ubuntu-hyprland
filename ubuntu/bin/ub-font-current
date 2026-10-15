@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# ub:summary=Show the current monospace font
+# ub:examples=ub font current
+
+# The Waybar style is the one place every component agrees on, so it is the
+# reference. Themes set it too, so fall back to the active theme's stylesheet.
+if [[ -f ~/.config/waybar/style.css ]]; then
+  current=$(grep -oP "font-family:\s*['\"]?\K[^;'\"]+" ~/.config/waybar/style.css | head -n1)
+  if [[ -n $current ]]; then
+    echo "$current"
+    exit 0
+  fi
+fi
+
+echo "Unknown"
