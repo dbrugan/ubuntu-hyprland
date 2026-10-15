@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# ub:summary=Toggle screensaver availability
+
+ub-toggle \
+  --enabled-notification "   Screensaver disabled" \
+  --disabled-notification "   Screensaver enabled" \
+  screensaver-off
