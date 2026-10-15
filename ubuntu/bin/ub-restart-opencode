@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# ub:summary=Reload opencode configuration (used by the theme switcher).
+
+if pgrep -x opencode >/dev/null; then
+  killall -SIGUSR2 opencode
+fi

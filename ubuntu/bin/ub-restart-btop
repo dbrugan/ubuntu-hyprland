@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# ub:summary=Reload btop configuration (used by the theme switcher).
+
+pkill -SIGUSR2 btop
