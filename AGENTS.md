@@ -259,8 +259,15 @@ Automated tests are not ported yet. The Omarchy model to follow:
 
 - before <type> there should be an emoji following gitmoji convention (gitmoji.dev); prefix each
   commit with a relevant emoji (e.g. `✨`, `♻️`, `🐛`, `🔧`).
-- Commits should be atomic: include only one coherent change or fix, and do not
-  mix unrelated work.
+- Commits must be atomic: a single, self-contained change that performs one and
+  only one logical unit of work. Each commit fixes one bug, adds one feature,
+  or refactors one specific piece of code — never a mix of unrelated work.
+- Every atomic commit must leave the tree in a complete, working state: the
+  change is finished (no half-written code carried forward) and `./test/all`
+  passes at that commit.
+- Keep commits independently reversible: a commit should revert, cherry-pick,
+  and bisect cleanly without dragging unrelated changes along. If reverting
+  your commit would break something it didn't intend to touch, it wasn't atomic.
 - Commit messages should be succinct and describe the change being made.
 
 # Known WIP Gaps
