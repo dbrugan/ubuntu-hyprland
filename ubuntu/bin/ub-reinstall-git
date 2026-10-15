@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# ub:summary=Reinstall the Ubuntu Hyprland source directory from git
+# ub:requires-sudo=true
+
+set -e
+
+UBUNTU_SHARE="${UBUNTU_PATH:-$HOME/.local/share/ubuntu-hyprland}"
+REPO_URL="https://github.com/dbrugan/ubuntu-hyprland.git"
+
+# Reinstall the configuration directory from the git source.
+git clone --depth=1 "$REPO_URL" ~/.local/share/ubuntu-hyprland-new >/dev/null
+mv "$UBUNTU_SHARE" ~/.local/share/ubuntu-hyprland-old
+mv ~/.local/share/ubuntu-hyprland-new "$UBUNTU_SHARE"

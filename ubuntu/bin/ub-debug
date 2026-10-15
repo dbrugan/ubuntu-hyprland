@@ -1,0 +1,89 @@
+#!/bin/bash
+
+# ub:summary=Print debugging information
+# ub:args=[--no-sudo] [--print]
+# ub:examples=ub debug --print --no-sudo
+# ub:requires-sudo=true
+
+NO_SUDO=false
+PRINT_ONLY=false
+
+while (( $# > 0 )); do
+  case "$1" in
+  --no-sudo)
+    NO_SUDO=true
+    shift
+    ;;
+  --print)
+    PRINT_ONLY=true
+    shift
+    ;;
+  *)
+    echo "Unknown option: $1"
+    echo "Usage: $(basename "$0") [--no-sudo] [--print]"
+    exit 1
+    ;;
+  esac
+done
+
+UBUNTU_SHARE="${UBUNTU_PATH:-$HOME/.local/share/ubuntu-hyprland}"
+LOG_FILE="/tmp/ub-debug.log"
+
+if [[ $NO_SUDO == "true" ]]; then
+  DMESG_OUTPUT="(skipped - --no-sudo flag used)"
+else
+  DMESG_OUTPUT="$(sudo dmesg)"
+fi
+
+# fastfetch is the system-information source here; inxi is not installed.
+FASTFETCH_OUTPUT=$(fastfetch --logo none --pipe 2>/dev/null || echo "fastfetch unavailable")
+
+cat >"$LOG_FILE" <<EOF
+Date: $(date)
+Hostname: $(hostname)
+Ubuntu Hyprland branch: $(git -C "$UBUNTU_SHARE" branch --show-current 2>/dev/null || echo "unknown")
+
+=========================================
+SYSTEM INFORMATION
+=========================================
+$FASTFETCH_OUTPUT
+
+=========================================
+DMESG
+=========================================
+$DMESG_OUTPUT
+
+=========================================
+JOURNALCTL (CURRENT BOOT, WARNINGS+ERRORS)
+=========================================
+$(journalctl -b -p 4..1)
+
+=========================================
+EXPLICITLY INSTALLED PACKAGES
+=========================================
+$(dpkg-query -W -f='${Package} ${Version} (${Status})\n' $(apt-mark showmanual 2>/dev/null) 2>/dev/null | sort)
+
+=========================================
+PACSTALL PACKAGES
+=========================================
+$(pacstall -L 2>/dev/null || echo "pacstall not available")
+EOF
+
+if [[ $PRINT_ONLY == "true" ]]; then
+  cat "$LOG_FILE"
+  exit 0
+fi
+
+# Deliberately no upload option: the upstream equivalent posts this log to a
+# third-party service, which is not this project's to use. See AGENTS.md.
+ACTION=$(gum choose "View log" "Save in current directory")
+
+case "$ACTION" in
+"Save in current directory")
+  cp "$LOG_FILE" "./$(basename "$LOG_FILE")"
+  echo "Saved to ./$(basename "$LOG_FILE")"
+  ;;
+*)
+  less "$LOG_FILE"
+  ;;
+esac
