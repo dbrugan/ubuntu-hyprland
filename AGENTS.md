@@ -298,6 +298,15 @@ These pieces are intentional scaffolding, not breakage:
   replace it with a plain copy: that is the only way back from a re-run.
 - The update pipeline has no AUR or migration step. `ub-update-pacstall` covers
   what `pacman -Syua` did upstream, and there is no migration runner.
+- There are no release channels. Upstream's `branch-set`, `channel-set`,
+  `version-branch`, and `version-channel` are not ported: this setup tracks a
+  git branch plus apt, so `ub-update-available` compares local and remote HEAD
+  rather than release tags, and `ub-version-pkgs` reports the last apt upgrade.
+- Upstream's `update-keyring` is not ported. It maintains `archlinux-keyring`
+  through `pacman-key`; Ubuntu's repository keys ship with `ubuntu-keyring` and
+  are refreshed by the `apt update` that `ub-update-system-pkgs` already runs.
+  `update-without-idle` is likewise absent because upstream reduced it to a
+  no-op, and `ub-update-perform` manages idle itself.
 - Theming is minimal by design; see `# Theming`. `config/all.sh` does
   not reference a `theme.sh`.
 - `install/packaging/webapps.sh` and the `ub-launch-webapp` /
