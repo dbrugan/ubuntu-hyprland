@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# ub:summary=Edit, set, or reset screensaver branding
+# ub:group=branding
+# ub:name=screensaver
+# ub:args=<image|text|reset>
+# ub:examples=ub branding screensaver image | ub branding screensaver text | ub branding screensaver reset
+
+set -euo pipefail
+
+case "${1:-}" in
+image)
+  image=$(ub-menu-file "Logo image" "$HOME" "svg png")
+  if [[ -n $image ]] && ub-transcode-ascii "$image" ~/.config/ubuntu/branding/screensaver.txt; then
+    ub-launch-screensaver force >/dev/null 2>&1
+  fi
+  ;;
+text)
+  ub-launch-editor ~/.config/ubuntu/branding/screensaver.txt >/dev/null 2>&1 && ub-launch-screensaver force >/dev/null 2>&1
+  ;;
+reset)
+  cp "$UBUNTU_PATH/logo.txt" ~/.config/ubuntu/branding/screensaver.txt && ub-launch-screensaver force >/dev/null 2>&1
+  ;;
+*)
+  echo "Usage: ub-branding-screensaver <image|text|reset>" >&2
+  exit 1
+  ;;
+esac

@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# ub:summary=Edit, set, or reset About branding
+# ub:group=branding
+# ub:name=about
+# ub:args=<image|text|reset>
+# ub:examples=ub branding about image | ub branding about text | ub branding about reset
+
+set -euo pipefail
+
+case "${1:-}" in
+image)
+  image=$(ub-menu-file "Logo image" "$HOME" "svg png")
+  if [[ -n $image ]] && ub-transcode-ascii "$image" ~/.config/ubuntu/branding/about.txt --width 54 --height 26 --mode block; then
+    ub-launch-about >/dev/null 2>&1
+  fi
+  ;;
+text)
+  ub-launch-editor ~/.config/ubuntu/branding/about.txt >/dev/null 2>&1 && ub-launch-about >/dev/null 2>&1
+  ;;
+reset)
+  cp "$UBUNTU_PATH/icon.txt" ~/.config/ubuntu/branding/about.txt && ub-launch-about >/dev/null 2>&1
+  ;;
+*)
+  echo "Usage: ub-branding-about <image|text|reset>" >&2
+  exit 1
+  ;;
+esac

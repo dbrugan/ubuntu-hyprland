@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# ub:summary=Launch the fastfetch TUI that gives information about the current system.
+
+exec ub-launch-or-focus-tui "bash -c 'fastfetch; read -n 1 -s'"
