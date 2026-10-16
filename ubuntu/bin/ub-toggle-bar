@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# ub:summary=Toggle the bar's visibility
+# ub:examples=ub toggle bar
+
+# The shell watches ~/.local/state/ubuntu/toggles/bar-off and hides or shows
+# the bar itself, so toggling the flag is all this has to do. Upstream kills
+# and respawns the process instead; here the bar survives the round trip.
+ub-toggle bar-off

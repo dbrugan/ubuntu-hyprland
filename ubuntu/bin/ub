@@ -473,7 +473,7 @@ Usage:
 Common commands:
   ub theme set <name>    Apply a theme
   ub screenshot          Take a screenshot
-  ub toggle waybar       Toggle the status bar
+  ub toggle bar          Toggle the status bar
   ub reminder show       Show active reminders
 
 Groups:

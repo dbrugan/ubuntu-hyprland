@@ -24,19 +24,14 @@ if [[ -f ~/.config/hypr/hyprlock.conf ]]; then
   sed -i "s/font_family = .*/font_family = $font_name/g" ~/.config/hypr/hyprlock.conf
 fi
 
-if [[ -f ~/.config/waybar/style.css ]]; then
-  sed -i "s/font-family: .*/font-family: '$font_name';/g" ~/.config/waybar/style.css
-fi
-
 if [[ -f ~/.config/swayosd/style.css ]]; then
   sed -i "s/font-family: .*/font-family: '$font_name';/g" ~/.config/swayosd/style.css
 fi
 
-if [[ -f ~/.config/ubuntu/current/theme/waybar.css ]]; then
-  sed -i "s/font-family: .*/font-family: \"$font_name\";/g" ~/.config/ubuntu/current/theme/waybar.css
-fi
+# The shell bar reads its font from shell.toml, which is rendered with the
+# theme rather than edited in place, so there is nothing to rewrite here yet.
 
-# Alacritty and Waybar reload on their own; swayosd needs an explicit restart.
+# Alacritty and swayosd need an explicit restart to pick the family up.
 if [[ -f ~/.config/swayosd/style.css ]]; then
   ub-restart-swayosd
 fi

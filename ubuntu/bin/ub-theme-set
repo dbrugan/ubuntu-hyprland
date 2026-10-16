@@ -52,10 +52,8 @@ if [[ ${UBUNTU_THEME_SKIP_BACKGROUND:-} != "1" ]]; then
   fi
 fi
 
-# Restart components to apply new theme
-if pgrep -x waybar >/dev/null; then
-  ub-restart-waybar
-fi
+# Refresh the bar's indicators so they pick up the new theme immediately.
+ub-shell -q ubuntu.indicators refresh
 
 # Call hook on theme set
 ub-hook theme-set "$THEME_NAME" >/dev/null

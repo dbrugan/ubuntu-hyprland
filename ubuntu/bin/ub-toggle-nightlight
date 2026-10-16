@@ -15,18 +15,13 @@ fi
 # Query the current temperature
 CURRENT_TEMP=$(hyprctl hyprsunset temperature 2>/dev/null | grep -oE '[0-9]+')
 
-restart_nightlighted_waybar() {
-  if [[ -f ~/.config/waybar/config.jsonc ]] && grep -q "custom/nightlight" ~/.config/waybar/config.jsonc; then
-    ub-restart-waybar # restart waybar in case user has waybar module for hyprsunset
-  fi
-}
-
 if [[ $CURRENT_TEMP == "$OFF_TEMP" ]]; then
   hyprctl hyprsunset temperature $ON_TEMP
   ub-notification-send "" "  Nightlight screen temperature"
-  restart_nightlighted_waybar
 else
   hyprctl hyprsunset temperature $OFF_TEMP
   ub-notification-send "" "   Daylight screen temperature"
-  restart_nightlighted_waybar
 fi
+
+# The bar tracks hyprsunset on its own, but refresh so it shows at once.
+ub-shell -q ubuntu.indicators refresh

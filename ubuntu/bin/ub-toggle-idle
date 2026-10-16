@@ -10,4 +10,4 @@ else
   ub-notification-send "" "󱫖    Now locking computer when idle"
 fi
 
-pkill -RTMIN+9 waybar
+ub-shell -q ubuntu.indicators refresh

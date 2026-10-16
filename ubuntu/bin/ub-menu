@@ -123,7 +123,7 @@ show_toggle_menu() {
 
   ub-hyprland-toggle-enabled window-no-gaps && options+="  Window gaps\n"
   ub-hyprland-toggle-enabled single-window-aspect-ratio && options+="  Single-window square aspect\n"
-  ub-toggle-enabled waybar-off && options+="  Top bar\n"
+  ub-toggle-enabled bar-off && options+="  Top bar\n"
 
   if [[ -z $options ]]; then
     options="  Window gaps\n  Single-window square aspect\n  Top bar\n"
@@ -133,7 +133,7 @@ show_toggle_menu() {
   case "$choice" in
   *"Window gaps"*) ub-hyprland-window-gaps-toggle ;;
   *"Single-window"*) ub-hyprland-window-single-square-aspect-toggle ;;
-  *"Top bar"*) ub-toggle-waybar ;;
+  *"Top bar"*) ub-toggle-bar ;;
   *) show_main_menu ;;
   esac
 }

@@ -235,10 +235,14 @@ against.
   `bright_*` variants). The old `color0-15` palette is legacy.
 - `shell/` - the ported Quickshell shell (upstream `omarchy/shell/`), a single
   long-running instance that owns the bar, menus, notifications, OSD, lock,
-  and polkit agent. It is **staged but not yet active**: `ub-launch-shell` is
-  not yet in any autostart, and the bar still comes from Waybar, menus from
-  Walker/Elephant, notifications from Mako, and the OSD from SwayOSD. Do not
-  wire it up piecemeal — see `# Known WIP Gaps` for the cutover order.
+  and polkit agent. It is **partly active**: `ub-launch-shell` runs from
+  `default/hypr/autostart.conf` and the bar has been cut over to it, but menus
+  still come from Walker/Elephant, notifications from Mako, and the OSD from
+  SwayOSD. `config/ubuntu/shell.json` lists `ubuntu.background`,
+  `ubuntu.notifications`, and `ubuntu.polkit` under `disabledPlugins` so the
+  shell does not claim the wallpaper, the notification bus, or the polkit
+  agent ahead of their cutover. Do not enable one of those piecemeal — see
+  `# Known WIP Gaps` for the remaining order.
 
 ## Shell
 
@@ -362,18 +366,18 @@ These pieces are intentional scaffolding, not breakage:
   ported; see the bullets below. Upstream v4.0.4 narrowed `install/login/` to
   just `all.sh` and `sddm.sh` and moved plymouth, default-keyring, and the
   snapper setup to `install/user/`, `install/config/snapper.sh`, and `etc/`.
-- `config/` holds the ported Hyprland tree (`config/hypr/`), the Waybar
-  config (`config/waybar/`), the uwsm session env (`config/uwsm/`), a fontconfig
-  default for `ub-font-set`, hook samples under `config/ubuntu/hooks/`, and
-  defaults for the apps the desktop actually launches or offers: `mako`,
-  `fcitx5` plus its `environment.d` variables, `swayosd` plus its user service,
-  `walker` with the elephant provider configs, `foot`/`ghostty`/`kitty`,
-  `alacritty`, `starship`, `tmux`, `fastfetch`, `git`, `wiremix`,
-  `opencode`, Typora themes, and the share picker. `imv` and `xournalpp`
-  are not installed, so their configs are absent. Note that upstream v4.0.4 has
-  already dropped `waybar/`, `walker/`, `mako/`, `swayosd/`, `uwsm/`,
-  `fastfetch/`, `fontconfig/`, and `Typora` from `config/` in favour of
-  `shell/` and `default/`; this is the largest structural gap to close.
+- `config/` holds the ported Hyprland tree (`config/hypr/`), the uwsm session
+  env (`config/uwsm/`), a fontconfig default for `ub-font-set`, hook samples
+  under `config/ubuntu/hooks/`, and defaults for the apps the desktop actually
+  launches or offers: `mako`, `fcitx5` plus its `environment.d` variables,
+  `swayosd` plus its user service, `walker` with the elephant provider configs,
+  `foot`/`ghostty`/`kitty`, `alacritty`, `starship`, `tmux`, `fastfetch`,
+  `git`, `wiremix`, `opencode`, Typora themes, and the share picker. `imv` and
+  `xournalpp` are not installed, so their configs are absent. Note that
+  upstream v4.0.4 has already dropped `waybar/`, `walker/`, `mako/`, `swayosd/`,
+  `uwsm/`, `fastfetch/`, `fontconfig/`, and `Typora` from `config/` in favour
+  of `shell/` and `default/`; Walker, Mako, and SwayOSD are the remaining ones
+  to cut over.
 - `btop` and `lazygit` are installed and launched from the TUI bindings, but
   ship no `config/`. Upstream's `config/btop/btop.conf` and
   `config/lazygit/config.yml` are deliberately not carried: both apps fall
@@ -388,11 +392,13 @@ These pieces are intentional scaffolding, not breakage:
   will not recolor them.
 - `themes/` ships Tokyo Night and Catppuccin Latte. Each theme carries the
   files the desktop sources directly (`hyprland.conf`, `hyprlock.conf`,
-  `waybar.css`, `walker.css`, `gum.env.conf`, `colors.toml`, `backgrounds/`),
+  `walker.css`, `gum.env.conf`, `colors.toml`, `backgrounds/`),
   pre-rendered rather than templated, so `ub-theme-set` stays a directory
   swap. Keep exactly one `background` and one `foreground` line at the start
   of a key in `colors.toml`: `ub-plymouth-set-by-theme` greps those prefixes
-  and passes every match to `ub-plymouth-set` as separate arguments. Upstream
+  and passes every match to `ub-plymouth-set` as separate arguments. The shell
+  bar does not read any of these: it takes its colors from the rendered
+  `shell.toml`, which is not wired up yet. Upstream
   v4.0.4 moved most of that rendered content into `default/themed/*.tpl`
   (`hyprland.lua.tpl`, `shell.toml.tpl`, `gum_env.lua.tpl`, …) and shrank each
   theme directory to `colors.toml` plus `icons.theme`, `neovim.lua`,

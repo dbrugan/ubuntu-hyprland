@@ -81,13 +81,13 @@ assert_output_contains "capture group includes screenshot route" "$output" "ub c
 
 output=$("$CLI" toggle)
 assert_output_contains "bare root command with children renders help instead of dispatch" "$output" "Toggle commands"
-assert_output_contains "bare toggle help includes child route" "$output" "ub toggle waybar"
+assert_output_contains "bare toggle help includes child route" "$output" "ub toggle bar"
 
 output=$("$CLI" pkg --help)
 assert_output_contains "package group includes pkg add fallback route" "$output" "ub pkg add <packages...>"
 
 output=$("$CLI" restart --help)
-assert_output_contains "restart group includes known commands" "$output" "ub restart waybar"
+assert_output_contains "restart group includes known commands" "$output" "ub restart shell"
 
 output=$("$CLI" hw --help)
 assert_output_contains "hardware group includes touchpad" "$output" "ub hw touchpad"

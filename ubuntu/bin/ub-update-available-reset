@@ -3,5 +3,5 @@
 # ub:summary=Ensure the Waybar update indicator is removed
 # ub:hidden=true
 
-pkill -RTMIN+7 waybar
+ub-shell -q ubuntu.indicators refresh
 exit 0

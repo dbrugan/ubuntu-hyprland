@@ -10,4 +10,4 @@ else
   ub-notification-send "" "󰂚    Enabled notifications"
 fi
 
-pkill -RTMIN+10 waybar
+ub-shell -q ubuntu.indicators refresh
