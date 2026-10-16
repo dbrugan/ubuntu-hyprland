@@ -94,7 +94,6 @@ systemd-boot-efi
 systemd-ukify
 slurp
 starship
-swaybg
 system-config-printer
 python3-terminaltexteffects
 thunderbird

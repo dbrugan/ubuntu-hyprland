@@ -56,9 +56,5 @@
       ]
     }
   },
-  "plugins": [],
-  "disabledPlugins": [
-    "ubuntu.background",
-    "ubuntu.polkit"
-  ]
+  "plugins": []
 }

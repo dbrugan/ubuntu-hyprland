@@ -17,9 +17,11 @@ if [[ ! -f $BACKGROUND ]]; then
   exit 1
 fi
 
-# Create symlink to the new background
+# Create symlink to the new background. ub-theme-set normally creates this
+# directory on its way through, but this command can be run on its own.
+mkdir -p "$(dirname "$CURRENT_BACKGROUND_LINK")"
 ln -nsf "$BACKGROUND" "$CURRENT_BACKGROUND_LINK"
 
-# Kill existing swaybg and start new one
-pkill -x swaybg
-setsid uwsm-app -- swaybg -i "$CURRENT_BACKGROUND_LINK" -m fill >/dev/null 2>&1 &
+# The shell's background plugin owns the wallpaper now, so it is told to set
+# the new image rather than left to notice the symlink itself. set() cross-fades.
+ub-shell -q background set "$BACKGROUND" >/dev/null 2>&1 || ub-shell -q background refresh >/dev/null 2>&1 || true
