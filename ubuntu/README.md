@@ -109,6 +109,7 @@ ub refresh shell
 ```
 
 These examples reflect the currently installed setup, which still uses
-Hyprland `.conf` files. The bar, menus, notifications, and OSD all come from
-the Quickshell shell. The upstream reference is pinned at Omarchy v4.0.4, where
-those Hyprland files are `.lua`; porting that migration will replace this list.
+Hyprland `.conf` files. The bar, menus, notifications, OSD, wallpaper, lock,
+and polkit agent all come from the Quickshell shell. The upstream reference is
+pinned at Omarchy v4.0.4, where those Hyprland files are `.lua`; porting that
+migration will replace this list.
