@@ -6,9 +6,10 @@
 # ub:args=<theme-name>
 # ub:examples=ub theme list | ub theme set "Tokyo Night"
 
-# Minimal theme switcher: swaps ~/.config/ubuntu/current atomically from the
-# shipped or user theme directories. Template rendering and per-app theming
-# are intentionally out of scope (see AGENTS.md).
+# Theme switcher: swaps ~/.config/ubuntu/current atomically from the shipped
+# or user theme directories. The one template this setup needs is rendered:
+# shell.toml, which the bar, menu, OSD, and notifications all read. Rendering
+# any other template, and per-app theming, stay out of scope (see AGENTS.md).
 
 if [[ -z $1 ]]; then
   echo "Usage: ub-theme-set <theme-name>"
@@ -43,6 +44,30 @@ mv "$NEXT_THEME_PATH" "$CURRENT_THEME_PATH"
 # Store theme name for reference
 mkdir -p "$HOME/.config/ubuntu/current"
 echo "$THEME_NAME" >"$HOME/.config/ubuntu/current/theme.name"
+
+# Render shell.toml from the new theme's colors.toml. The shell reads it for
+# the bar, menu, OSD, and notifications, so without this they keep the
+# previous theme's colors until the next restart.
+if [[ -f $CURRENT_THEME_PATH/shell.toml ]]; then
+  # The theme ships its own; leave it alone.
+  :
+elif [[ -f $UBUNTU_SHARE/default/themed/shell.toml.tpl ]]; then
+  # shellcheck source=/dev/null
+  source "$UBUNTU_PATH/bin/ub-theme-render-shell"
+  render_shell_toml "$CURRENT_THEME_PATH" ||
+    echo "Warning: could not render shell.toml for $THEME_NAME" >&2
+fi
+
+# Hand the rendered theme to the running shell so it repaints now rather than
+# at the next restart. Both payloads are optional: a theme that ships neither
+# colors.toml nor shell.toml has nothing to hand over.
+if [[ -f $CURRENT_THEME_PATH/colors.toml || -f $CURRENT_THEME_PATH/shell.toml ]]; then
+  colors_b64=""
+  shell_b64=""
+  [[ -f $CURRENT_THEME_PATH/colors.toml ]] && colors_b64=$(base64 -w 0 "$CURRENT_THEME_PATH/colors.toml")
+  [[ -f $CURRENT_THEME_PATH/shell.toml ]] && shell_b64=$(base64 -w 0 "$CURRENT_THEME_PATH/shell.toml")
+  ub-shell -q shell applyTheme "$colors_b64" "$shell_b64" || true
+fi
 
 # Change background with theme
 if [[ ${UBUNTU_THEME_SKIP_BACKGROUND:-} != "1" ]]; then

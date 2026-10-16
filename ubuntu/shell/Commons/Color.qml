@@ -14,7 +14,10 @@ QtObject {
 
   readonly property string home: Quickshell.env("HOME")
   readonly property string stateHome: home + "/.local/state"
-  readonly property string currentThemePath: stateHome + "/ubuntu/current/theme"
+  // Upstream reads the rendered theme from ~/.local/state/omarchy/current,
+  // because that tree is generated. This port has no render stage: ub-theme-set
+  // swaps one directory in place, so the shell reads the same place it writes.
+  readonly property string currentThemePath: home + "/.config/ubuntu/current/theme"
 
   property color foreground: "#cacccc"
   property color background: "#101315"

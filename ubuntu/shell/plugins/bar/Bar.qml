@@ -1101,7 +1101,7 @@ Item {
   }
 
   FileView {
-    path: root.stateHome + "/ubuntu/current"
+    path: root.home + "/.config/ubuntu/current"
     watchChanges: true
     printErrors: false
     onFileChanged: root.scheduleTransparentForegroundRefresh()

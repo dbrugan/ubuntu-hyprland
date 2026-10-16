@@ -12,7 +12,7 @@ Item {
 
   readonly property string home: Quickshell.env("HOME")
   readonly property string stateHome: home + "/.local/state"
-  readonly property string currentBackgroundLink: stateHome + "/ubuntu/current/background"
+  readonly property string currentBackgroundLink: home + "/.config/ubuntu/current/background"
 
   property string currentBackground: ""
   property string displayedBackground: ""

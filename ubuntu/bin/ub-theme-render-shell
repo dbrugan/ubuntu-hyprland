@@ -1,0 +1,157 @@
+#!/bin/bash
+
+# ub:summary=Render shell.toml for the active theme
+# ub:hidden=true
+
+# Ported from upstream's theme-set-templates command, reduced to what
+# default/themed/shell.toml.tpl actually needs. That command is a full
+# render stage: it stages a next-theme tree, resolves legacy colorN aliases,
+# walks a user template directory, and renders every template in default/themed/. This
+# port has no render stage -- ub-theme-set swaps one directory in place -- so
+# only the one template is rendered, and only into it.
+#
+# Only the tokens that template uses are handled: the plain color names from
+# colors.toml, one mix(), and shell_gradient() against Hyprland's active
+# border. A token this does not recognise is left in place rather than
+# substituted with an empty string, so a mistake shows up as a visible
+# {{ }} instead of an invisible wrong color.
+
+TEMPLATES_DIR="$UBUNTU_PATH/default/themed"
+
+# Load colors.toml into THEME_COLOR, keyed by name. Values keep whatever form
+# the theme wrote: #rrggbb for a plain color, and rgba(...) for a gradient.
+load_theme_colors() {
+  local colors_file="$1"
+
+  declare -gA THEME_COLOR=()
+  while IFS=$'\t' read -r key value; do
+    [[ -z $key ]] && continue
+    THEME_COLOR["$key"]="$value"
+  done < <(awk -F= '/^[a-z_]+[[:space:]]*=/ {
+      key = $1; value = $2
+      sub(/[[:space:]]+$/, "", value); sub(/[[:space:]]+$/, "", key)
+      sub(/^[[:space:]]+/, "", key); sub(/^[[:space:]]+/, "", value)
+      gsub(/^"/, "", value); gsub(/"$/, "", value)
+      print key "\t" value
+    }' "$colors_file")
+}
+
+# Resolve a color name to its value. A literal #rrggbb passes straight through,
+# so a token can name either.
+resolve_color() {
+  local name="${1:-}"
+
+  if [[ $name == '#'* ]]; then
+    printf '%s' "$name"
+    return 0
+  fi
+  if [[ -n ${THEME_COLOR[$name]:-} ]]; then
+    printf '%s' "${THEME_COLOR[$name]}"
+    return 0
+  fi
+
+  return 1
+}
+
+# mix COLOR_A COLOR_B N% -- blend two colors, A weighted by N.
+mix_hex() {
+  local a b ratio ar ag ab br bg bb r g bl
+
+  a=$(resolve_color "$1") || return 1
+  b=$(resolve_color "$2") || return 1
+  ratio="${3//\%/}"
+
+  [[ $a =~ ^#(..)(..)(..)$ ]] || return 1
+  ar=$((16#${BASH_REMATCH[1]})) ag=$((16#${BASH_REMATCH[2]})) ab=$((16#${BASH_REMATCH[3]}))
+  [[ $b =~ ^#(..)(..)(..)$ ]] || return 1
+  br=$((16#${BASH_REMATCH[1]})) bg=$((16#${BASH_REMATCH[2]})) bb=$((16#${BASH_REMATCH[3]}))
+
+  r=$(((ar * ratio + br * (100 - ratio)) / 100))
+  g=$(((ag * ratio + bg * (100 - ratio)) / 100))
+  bl=$(((ab * ratio + bb * (100 - ratio)) / 100))
+
+  printf '#%02x%02x%02x' "$r" "$g" "$bl"
+}
+
+# shell_gradient KEY FALLBACK -- the theme's value for KEY, or the fallback
+# color when the theme does not define it. Hyprland's own option lookup cannot
+# answer this: col.active_border is a config variable rather than a getoption
+# target, so it never resolves. Themes that want a gradient put one in
+# colors.toml under hyprland_active_border, which is where this reads it from;
+# the rest fall back to a solid color.
+shell_gradient_value() {
+  local key="$1" fallback="$2"
+
+  if [[ -n ${THEME_COLOR[$key]:-} ]]; then
+    printf '%s' "${THEME_COLOR[$key]}"
+    return 0
+  fi
+
+  resolve_color "$fallback"
+}
+
+# Emit a sed script covering every token the template uses.
+build_sed_script() {
+  local tpl="$1"
+  local -A seen=()
+  local token rest key value
+
+  sed_script=$(mktemp)
+
+  # Plain color names straight out of colors.toml. Only #rrggbb entries go in;
+  # a gradient entry like rgba(...) is left for shell_gradient below.
+  for key in "${!THEME_COLOR[@]}"; do
+    value="${THEME_COLOR[$key]}"
+    [[ $value == \#* ]] || continue
+    printf 's|{{ %s }}|%s|g\n' "$key" "$value" >>"$sed_script"
+  done
+
+  # mix A B N%
+  while IFS= read -r token; do
+    [[ -n ${seen[$token]:-} ]] && continue
+    seen[$token]=1
+
+    rest="${token#mix}"
+    rest="${rest#"${rest%%[![:space:]]*}"}"
+    read -r a b n <<<"$rest"
+    value=$(mix_hex "$a" "$b" "$n") || continue
+    printf 's|{{ %s }}|%s|g\n' "$token" "$value" >>"$sed_script"
+  done < <(grep -hoE '\{\{[[:space:]]*mix[[:space:]]+[A-Za-z0-9_]+[[:space:]]+[A-Za-z0-9_]+[[:space:]]+[0-9]+([.][0-9]+)?%?[[:space:]]*\}\}' "$tpl" | sed 's/{{ *//;s/ *}}//' | sort -u)
+
+  # shell_gradient KEY FALLBACK
+  while IFS= read -r token; do
+    [[ -n ${seen[$token]:-} ]] && continue
+    seen[$token]=1
+
+    rest="${token#shell_gradient}"
+    rest="${rest#"${rest%%[![:space:]]*}"}"
+    read -r key fallback <<<"$rest"
+    value=$(shell_gradient_value "$key" "$fallback") || continue
+    printf 's|{{ %s }}|%s|g\n' "$token" "$value" >>"$sed_script"
+  done < <(grep -hoE '\{\{[[:space:]]*shell_gradient[[:space:]]+[^}]+\}\}' "$tpl" | sed 's/{{ *//;s/ *}}//' | sort -u)
+}
+
+render_shell_toml() {
+  local theme_dir="$1"
+  local tpl="$TEMPLATES_DIR/shell.toml.tpl"
+  local colors_file="$theme_dir/colors.toml"
+  local output="$theme_dir/shell.toml"
+
+  # A theme that ships its own shell.toml keeps it; the template is only the
+  # generated default.
+  [[ -f $output ]] && return 0
+  [[ -f $tpl ]] || return 1
+  [[ -f $colors_file ]] || return 1
+
+  load_theme_colors "$colors_file"
+  build_sed_script "$tpl"
+
+  if ! sed -f "$sed_script" "$tpl" >"$output"; then
+    rm -f "$output"
+    rm -f "$sed_script"
+    return 1
+  fi
+
+  rm -f "$sed_script"
+  return 0
+}
