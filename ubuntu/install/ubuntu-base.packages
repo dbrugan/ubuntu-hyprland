@@ -64,7 +64,6 @@ libxkbcommon-tools
 libyaml-0-2
 llvm
 luarocks
-mako-notifier
 man-db
 mpv
 nautilus
@@ -96,7 +95,6 @@ systemd-ukify
 slurp
 starship
 swaybg
-swayosd
 system-config-printer
 python3-terminaltexteffects
 thunderbird

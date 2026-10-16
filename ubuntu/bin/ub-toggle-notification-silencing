@@ -2,9 +2,9 @@
 
 # ub:summary=Toggle notification do-not-disturb mode
 
-makoctl mode -t do-not-disturb
+state=$(ub-shell notifications toggleDnd)
 
-if makoctl mode | grep -q 'do-not-disturb'; then
+if [[ $state == "on" ]]; then
   ub-notification-send "" "󰂛    Silenced notifications"
 else
   ub-notification-send "" "󰂚    Enabled notifications"

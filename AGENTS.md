@@ -236,13 +236,12 @@ against.
 - `shell/` - the ported Quickshell shell (upstream `omarchy/shell/`), a single
   long-running instance that owns the bar, menus, notifications, OSD, lock,
   and polkit agent. It is **partly active**: `ub-launch-shell` runs from
-  `default/hypr/autostart.conf`, and both the bar and the menus have been cut
-  over to it, but notifications still come from Mako and the OSD from SwayOSD.
-  `config/ubuntu/shell.json` lists `ubuntu.background`, `ubuntu.notifications`,
-  and `ubuntu.polkit` under `disabledPlugins` so the shell does not claim the
-  wallpaper, the notification bus, or the polkit agent ahead of their cutover.
-  Do not enable one of those piecemeal — see `# Known WIP Gaps` for the
-  remaining order.
+  `default/hypr/autostart.conf`, and the bar, menus, notifications, and OSD
+  have all been cut over to it. `config/ubuntu/shell.json` lists
+  `ubuntu.background` and `ubuntu.polkit` under `disabledPlugins`, so the
+  wallpaper is still `swaybg`'s and the polkit agent is still
+  `polkit-gnome-authentication-agent-1`. Enable neither piecemeal — see
+  `# Known WIP Gaps` for the remaining order.
 
 ## Shell
 
@@ -277,6 +276,15 @@ are the only substantive deviations. Everything else stays byte-comparable with
   Each is a bash one-liner emitting the `label\tvalue\tcurrent` rows the other
   providers use. Add new ones here rather than as separate scripts: only
   providers in that `providers` map are runnable in this Quickshell version.
+- `ub-audio-output-volume` is ported from upstream but simplified: upstream
+  resolves the physical sink through a chain of `omarchy-audio-*` helpers
+  before touching pactl, and this port has no DSP-routing layer to resolve
+  through, so it drives `@DEFAULT_SINK@` directly, matching the pactl idiom
+  already in `ub-audio-output-switch`. The mute-toggle debounce state file
+  moves from `/tmp/omarchy-*` to `~/.local/state/ubuntu/`.
+- OSD icon names are the shell's own set (`volume-muted`, `microphone`,
+  `keyboard`, `brightness`, `touchpad`, `touchscreen`), not SwayOSD's
+  `*-symbolic` names; `OsdModel.iconFor` maps them to glyphs.
 - Launch and IPC: `ub-launch-shell` supervises the instance the way upstream's
   launcher does; `ub-shell` is the IPC client (`qs ipc ... call --`). Both read
   `$UBUNTU_PATH` from the uwsm session environment, which is set at login and
@@ -375,8 +383,8 @@ These pieces are intentional scaffolding, not breakage:
 - `config/` holds the ported Hyprland tree (`config/hypr/`), the uwsm session
   env (`config/uwsm/`), a fontconfig default for `ub-font-set`, hook samples
   under `config/ubuntu/hooks/`, and defaults for the apps the desktop actually
-  launches or offers: `mako`, `fcitx5` plus its `environment.d` variables,
-  `swayosd` plus its user service, `foot`/`ghostty`/`kitty`,
+  launches or offers: `fcitx5` plus its `environment.d` variables,
+  `foot`/`ghostty`/`kitty`,
   `alacritty`, `starship`, `tmux`, `fastfetch`, `git`, `wiremix`,
   `opencode`, Typora themes, and the share picker. `imv` and `xournalpp`
   are not installed, so their configs are absent. Note that
@@ -393,8 +401,8 @@ These pieces are intentional scaffolding, not breakage:
 - Per-app theme files are deliberately not rendered; see `# Theming`. Configs
   that upstream pulled their colors from a rendered per-app theme file ship
   with the colors spelled out instead, and say so in a header comment. The
-  affected files are `config/{foot,ghostty,kitty}`, `config/swayosd/style.css`,
-  and `config/hyprland-preview-share-picker/config.yaml`. Switching themes
+  affected files are `config/{foot,ghostty,kitty}` and
+  `config/hyprland-preview-share-picker/config.yaml`. Switching themes
   will not recolor them.
 - `themes/` ships Tokyo Night and Catppuccin Latte. Each theme carries the
   files the desktop sources directly (`hyprland.conf`, `hyprlock.conf`,
@@ -403,8 +411,8 @@ These pieces are intentional scaffolding, not breakage:
   swap. Keep exactly one `background` and one `foreground` line at the start
   of a key in `colors.toml`: `ub-plymouth-set-by-theme` greps those prefixes
   and passes every match to `ub-plymouth-set` as separate arguments. The shell
-  bar does not read any of these: it takes its colors from the rendered
-  `shell.toml`, which is not wired up yet. Upstream
+  bar, menu, OSD, and notifications do not read any of these: they take their
+  colors from the rendered `shell.toml`, which is not wired up yet. Upstream
   v4.0.4 moved most of that rendered content into `default/themed/*.tpl`
   (`hyprland.lua.tpl`, `shell.toml.tpl`, `gum_env.lua.tpl`, …) and shrank each
   theme directory to `colors.toml` plus `icons.theme`, `neovim.lua`,

@@ -1,6 +1,0 @@
-#!/bin/bash
-
-# ub:summary=Wrapper for swayosd-client that targets the currently focused monitor.
-# ub:args=<swayosd-client-args...>
-
-exec swayosd-client --monitor "$(ub-hyprland-monitor-focused)" "$@"

@@ -50,6 +50,6 @@ fi
 # Set the new brightness.
 brightnessctl -d "$device" set "$new_brightness" >/dev/null
 
-# Use SwayOSD to display the new brightness setting.
+# Show the new brightness on the shell OSD.
 percent=$((new_brightness * 100 / max_brightness ))
-ub-swayosd-kbd-brightness "$percent"
+ub-osd -i keyboard -p "$percent"

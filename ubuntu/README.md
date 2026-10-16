@@ -91,7 +91,7 @@ repository setup is silently skipped.
 
 The installer writes a first-run marker. On the first login it applies the
 post-install steps that need a session: power profile and battery timer,
-firewall, resolved symlink, GTK theme, swayosd, and the welcome
+firewall, resolved symlink, GTK theme, and the welcome
 notifications. Watch for a "Setup Wi-Fi" notification if the machine has no
 network yet.
 

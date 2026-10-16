@@ -59,7 +59,6 @@
   "plugins": [],
   "disabledPlugins": [
     "ubuntu.background",
-    "ubuntu.notifications",
     "ubuntu.polkit"
   ]
 }

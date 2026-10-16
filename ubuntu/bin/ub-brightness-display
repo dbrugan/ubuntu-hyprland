@@ -51,5 +51,5 @@ fi
 # Set the actual brightness of the display device.
 brightnessctl -d "$device" set "$step" >/dev/null
 
-# Use SwayOSD to display the new brightness setting.
-ub-swayosd-brightness "$(brightnessctl -d "$device" -m | cut -d',' -f4 | tr -d '%')"
+# Show the new brightness on the shell OSD.
+ub-osd -i brightness -p "$(brightnessctl -d "$device" -m | cut -d',' -f4 | tr -d '%')"
