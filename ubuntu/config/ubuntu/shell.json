@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "idle": {
+    "screensaver": 150,
+    "lock": 300
+  },
+  "bar": {
+    "position": "top",
+    "transparent": false,
+    "centerAnchor": "ubuntu.clock",
+    "layout": {
+      "left": [
+        {
+          "id": "ubuntu.menu"
+        },
+        {
+          "id": "ubuntu.workspaces"
+        }
+      ],
+      "center": [
+        {
+          "id": "ubuntu.indicators"
+        },
+        {
+          "id": "ubuntu.clock",
+          "format": "dddd HH:mm",
+          "formatAlt": "d MMMM 'W'ww yyyy",
+          "verticalFormat": "HH\n—\nmm"
+        },
+        {
+          "id": "ubuntu.keyboard-layout"
+        },
+        {
+          "id": "ubuntu.system-update"
+        }
+      ],
+      "right": [
+        {
+          "id": "ubuntu.tray"
+        },
+        {
+          "id": "ubuntu.bluetooth"
+        },
+        {
+          "id": "ubuntu.network"
+        },
+        {
+          "id": "ubuntu.audio"
+        },
+        {
+          "id": "ubuntu.monitor"
+        },
+        {
+          "id": "ubuntu.power"
+        }
+      ]
+    }
+  },
+  "plugins": []
+}

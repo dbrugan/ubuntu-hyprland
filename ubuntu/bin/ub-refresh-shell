@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# ub:summary=Reset shell.json to Ubuntu defaults
+# ub:examples=ub refresh shell
+
+set -euo pipefail
+
+ub-refresh-config ubuntu/shell.json
+
+ub-restart-shell

@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# ub:summary=Disable a shell plugin
+# ub:group=plugin
+# ub:args=<id>
+
+set -euo pipefail
+
+fail() {
+  echo "ub-plugin-disable: $*" >&2
+  exit 1
+}
+
+if [[ ${1:-} == "-h" || ${1:-} == "--help" ]]; then
+  echo "Usage: ub plugin disable <id>"
+  exit 0
+fi
+
+id="${1:-}"
+[[ -n $id ]] || fail "plugin id is required"
+
+result=$(ub-shell shell setPluginEnabled "$id" false)
+[[ $result == "ok" ]] ||
+  fail "plugin '$id' is not known; run: ub-shell shell rescanPlugins"
+
+echo "Disabled $id"

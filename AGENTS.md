@@ -233,6 +233,44 @@ against.
   families (`dark_*`, `light_*`, `bright_*`), and named colors
   (`red`/`green`/`yellow`/`blue`/`magenta`/`cyan`/`orange`/`brown` plus
   `bright_*` variants). The old `color0-15` palette is legacy.
+- `shell/` - the ported Quickshell shell (upstream `omarchy/shell/`), a single
+  long-running instance that owns the bar, menus, notifications, OSD, lock,
+  and polkit agent. It is **staged but not yet active**: `ub-launch-shell` is
+  not yet in any autostart, and the bar still comes from Waybar, menus from
+  Walker/Elephant, notifications from Mako, and the OSD from SwayOSD. Do not
+  wire it up piecemeal — see `# Known WIP Gaps` for the cutover order.
+
+## Shell
+
+The shell is ported from upstream with mechanical renames, and the following
+are the only substantive deviations. Everything else stays byte-comparable with
+`omarchy/shell/` so a re-pin is a fresh diff rather than a re-port.
+
+- `$UBUNTU_PATH` replaces `$OMARCHY_PATH`; `~/.config/ubuntu/` and
+  `~/.local/state/ubuntu/` replace the `omarchy/` equivalents; plugin IDs are
+  `ubuntu.*` rather than `omarchy.*`. `ubuntu.*` is therefore the reserved
+  namespace, which `ub-plugin-validate` enforces.
+- The manifest schema key is `ubuntu:`, not `omarchy:` — `PluginRegistry.qml`
+  reads `manifest.ubuntu` for `capabilities` and `clonedFrom`.
+- quickshell 0.3.2 rejects `transient` as a reserved QML token, so
+  `plugins/notifications/Service.qml` names that local `transientHint`. Upstream
+  builds against quickshell-git and needs no rename; revert it if the pacscript
+  ever moves to a git build. See the comment at the rename site.
+- `MenuModel.js` builds its package-guard index with `dpkg-query` rather than
+  `pacman -Qq`. There is no provides set to fold in and no version-constraint
+  form, so those two upstream branches are dropped rather than translated.
+- The icon font family is referenced as `ubuntu`, but no `ubuntu.ttf` is
+  shipped yet, so glyphs fall back. Upstream ships `default/fonts/omarchy/`.
+- Only the core plugin set is carried: `bar`, `menu`, `notifications`, `osd`,
+  `lock`, `polkit`, `background`, `services/{battery,idle,media,nightlight}`,
+  and panels `audio`, `bluetooth`, `clock`, `monitor`, `network`, `power`.
+  Deferred: `agents`, `clipboard`, `dev-gallery`, `emojis`, `image-picker`,
+  `reminders`, and panels `disk-speedtest`, `dropbox`, `speedtest`, `tailscale`,
+  `weather`, `wifiqr`. `config/ubuntu/shell.json` is trimmed to match.
+- Launch and IPC: `ub-launch-shell` supervises the instance the way upstream's
+  launcher does; `ub-shell` is the IPC client (`qs ipc ... call --`). Both read
+  `$UBUNTU_PATH` from the uwsm session environment, which is set at login and
+  is not exported by `install.sh` — see `# Runtime Environment`.
 
 # Theming
 

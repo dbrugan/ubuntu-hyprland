@@ -129,6 +129,8 @@ btrfs-progs
 # --- pacstall ---
 # Pacscripts, installed via install/preflight/pacstall.sh and ub-pkg-pacstall-add.
 # pacstall replaces Arch's yay here.
+quickshell
+inotify-tools
 walker-bin
 elephant-bin
 elephant-providerlist-bin
