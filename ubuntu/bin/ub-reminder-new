@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# ub:summary=Set a reminder by picking how long from now and typing the message
+# ub:examples=ub reminder new
+
+set -euo pipefail
+
+minutes=$(ub-menu-select "Minutes" 5 10 15 30 60 120 -- --maxheight 400) || exit 1
+[[ -z $minutes ]] && exit 1
+
+message=$(ub-menu-input "Message") || exit 1
+[[ -z $message ]] && message="Your ${minutes} minutes are up"
+
+ub-reminder "$minutes" "$message"

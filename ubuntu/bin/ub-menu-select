@@ -1,15 +1,21 @@
 #!/bin/bash
 
-# ub:summary=Pick one option with Walker
+# ub:summary=Pick one option from a menu
 # ub:group=menu
 # ub:name=select
-# ub:args=prompt option... [-- walker args...]
-# ub:examples=ub menu select Format jpg png|ub-menu-select Resolution 4k 1080p 720p -- --width 400
+# ub:args=prompt [option...] [-- menu args...]
+# ub:examples=ub menu select Format jpg png | ub-menu-select Resolution 4k 1080p 720p -- --width 400
+
+# An option may lead with an icon, as "<glyph><TAB><label>", and may trail a
+# subtext shown under the label, as "<glyph><TAB><label><TAB><subtext>". The
+# menu shows the glyph but never returns it. A plain option returns the label
+# alone; an option with a subtext returns "<label><TAB><subtext>", so callers
+# with same-named rows get the subtext back as the stable key.
 
 set -euo pipefail
 
-if (( $# < 2 )); then
-  echo "Usage: ub-menu-select <prompt> <option>... [-- walker args...]" >&2
+if (( $# < 1 )); then
+  echo "Usage: ub-menu-select <prompt> [option...] [-- menu args...]" >&2
   exit 1
 fi
 
@@ -17,12 +23,34 @@ prompt="$1"
 shift
 
 options=()
-walker_args=()
+menu_width=""
+menu_maxheight=""
 
 while (( $# > 0 )); do
   if [[ $1 == "--" ]]; then
     shift
-    walker_args=("$@")
+    while (( $# > 0 )); do
+      case "$1" in
+        --width)
+          shift
+          if (( $# == 0 )); then
+            echo "ub-menu-select: --width requires a value" >&2
+            exit 1
+          fi
+          menu_width="$1"
+          ;;
+        --height|--maxheight)
+          arg="$1"
+          shift
+          if (( $# == 0 )); then
+            echo "ub-menu-select: $arg requires a value" >&2
+            exit 1
+          fi
+          menu_maxheight="$1"
+          ;;
+      esac
+      shift
+    done
     break
   fi
 
@@ -30,9 +58,43 @@ while (( $# > 0 )); do
   shift
 done
 
+if (( ${#options[@]} == 0 )) && [[ ! -t 0 ]]; then
+  mapfile -t options
+fi
+
 if (( ${#options[@]} == 0 )); then
-  echo "Usage: ub-menu-select <prompt> <option>... [-- walker args...]" >&2
+  echo "Usage: ub-menu-select <prompt> [option...] [-- menu args...]" >&2
   exit 1
 fi
 
-printf '%s\n' "${options[@]}" | ub-launch-walker --dmenu --width 295 --minheight 1 --maxheight 300 -p "$prompt…" "${walker_args[@]}" 2>/dev/null
+selection_file=$(mktemp)
+done_file=$(mktemp)
+rm -f "$done_file"
+trap 'rm -f "$selection_file" "$done_file"' EXIT
+
+# jq reads and writes UTF-8 directly, so the options go in as arguments rather
+# than through the perl decode/encode round trip upstream uses for the same job.
+options_json=$(printf '%s\0' "${options[@]}" | jq -Rs 'split("\u0000")[:-1]')
+
+payload=$(jq -nc \
+  --arg prompt "$prompt" \
+  --argjson options "$options_json" \
+  --arg selectionFile "$selection_file" \
+  --arg doneFile "$done_file" \
+  --arg width "$menu_width" \
+  --arg maxHeight "$menu_maxheight" \
+  '{ mode: "select", prompt: $prompt, options: $options, selectionFile: $selectionFile, doneFile: $doneFile }
+   + (if $width == "" then {} else { width: ($width | tonumber) } end)
+   + (if $maxHeight == "" then {} else { maxHeight: ($maxHeight | tonumber) } end)')
+
+ub-shell shell summon ubuntu.menu "$payload" >/dev/null
+
+while [[ ! -e $done_file ]]; do
+  sleep 0.05
+done
+
+if [[ -s $selection_file ]]; then
+  cat "$selection_file"
+else
+  exit 1
+fi

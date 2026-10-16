@@ -12,7 +12,6 @@ run_logged $UBUNTU_INSTALL/config/docker.sh
 run_logged $UBUNTU_INSTALL/config/mimetypes.sh
 run_logged $UBUNTU_INSTALL/config/nautilus-python.sh
 run_logged $UBUNTU_INSTALL/config/localdb.sh
-run_logged $UBUNTU_INSTALL/config/walker-elephant.sh
 run_logged $UBUNTU_INSTALL/config/fast-shutdown.sh
 run_logged $UBUNTU_INSTALL/config/unmount-fuse.sh
 run_logged $UBUNTU_INSTALL/config/input-group.sh

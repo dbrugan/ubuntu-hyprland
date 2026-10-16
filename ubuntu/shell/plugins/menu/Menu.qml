@@ -277,6 +277,28 @@ Item {
       script: "current=$(powerprofilesctl get 2>/dev/null); ub-powerprofiles-list 2>/dev/null | while read -r p; do [[ -z $p ]] && continue; printf '%s\\t%s\\t%s\\n' \"$p\" \"$p\" \"$current\"; done",
       icon: "\udb81\udc0b",
       actionFor: function(value) { return "ub-powerprofiles-set autodetect " + Util.shellQuote(value) }
+    },
+    // Port-only providers, ported from the three Elephant menus this
+    // workspace/Elephant setup used to carry (default/elephant/ubuntu_*.lua).
+    // Each enumerates a directory the way the Lua did and emits the same
+    // label/value/current rows the other providers above emit.
+    "themes": {
+      script: "current=$(cat \"$HOME/.config/ubuntu/current/theme.name\" 2>/dev/null); for d in \"$HOME/.config/ubuntu/themes\" \"$UBUNTU_PATH/themes\"; do [[ -d $d ]] || continue; for t in \"$d\"/*; do [[ -d $t ]] || continue; n=${t##*/}; printf '%s\\t%s\\t%s\\n' \"$n\" \"$n\" \"$current\"; done; done | sort -u -k2,2",
+      icon: "\uf3eb",
+      actionFor: function(value) { return "ub-theme-set " + Util.shellQuote(value) }
+    },
+    "backgrounds": {
+      script: "current=$(readlink -f \"$HOME/.config/ubuntu/current/background\" 2>/dev/null); for f in \"$HOME/.config/ubuntu/current/theme/backgrounds\"/*; do [[ -f $f ]] || continue; printf '%s\\t%s\\t%s\\n' \"${f##*/}\" \"$f\" \"$current\"; done",
+      icon: "\uf00f",
+      actionFor: function(value) { return "ub-theme-bg-set " + Util.shellQuote(value) }
+    },
+    "unlocks": {
+      script: "for d in \"$HOME/.config/ubuntu/themes\" \"$UBUNTU_PATH/themes\"; do [[ -d $d ]] || continue; for t in \"$d\"/*; do [[ -f $t/preview-unlock.png ]] || continue; printf '%s\\t%s\\t\\n' \"${t##*/}\" \"${t##*/}\"; done; done | sort -u -k2,2; printf '%s\\t%s\\t\\n' 'Default' 'Default'",
+      icon: "\uf013",
+      actionFor: function(value) {
+        if (value === "Default") return "ub-launch-floating-terminal-with-presentation " + Util.shellQuote("ub-plymouth-reset")
+        return "ub-launch-floating-terminal-with-presentation " + Util.shellQuote("ub-plymouth-set-by-theme " + value)
+      }
     }
   })
 

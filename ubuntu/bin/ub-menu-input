@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# ub:summary=Prompt for text input with Walker
+# ub:summary=Prompt for text input from a menu
 # ub:group=menu
 # ub:name=input
-# ub:args=prompt [walker args...]
-# ub:examples=ub menu input Reminder
+# ub:args=prompt [menu args...]
+# ub:examples=ub menu input Reminder | ub-menu-input "Reminder in minutes" --width 400
 
 set -euo pipefail
 
@@ -13,4 +13,43 @@ if (( $# > 0 )); then
   shift
 fi
 
-ub-launch-walker --dmenu --inputonly --width 295 --minheight 1 --maxheight 1 -p "$prompt…" "$@" 2>/dev/null
+menu_width=""
+
+while (( $# > 0 )); do
+  case "$1" in
+    --width)
+      shift
+      if (( $# == 0 )); then
+        echo "ub-menu-input: --width requires a value" >&2
+        exit 1
+      fi
+      menu_width="$1"
+      ;;
+  esac
+  shift
+done
+
+selection_file=$(mktemp)
+done_file=$(mktemp)
+rm -f "$done_file"
+trap 'rm -f "$selection_file" "$done_file"' EXIT
+
+payload=$(jq -nc \
+  --arg prompt "$prompt" \
+  --arg selectionFile "$selection_file" \
+  --arg doneFile "$done_file" \
+  --arg width "$menu_width" \
+  '{ mode: "input", prompt: $prompt, selectionFile: $selectionFile, doneFile: $doneFile }
+   + (if $width == "" then {} else { width: ($width | tonumber) } end)')
+
+ub-shell shell summon ubuntu.menu "$payload" >/dev/null
+
+while [[ ! -e $done_file ]]; do
+  sleep 0.05
+done
+
+if [[ -s $selection_file ]]; then
+  cat "$selection_file"
+else
+  exit 1
+fi

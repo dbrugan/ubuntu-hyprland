@@ -12,8 +12,8 @@ if ub-toggle-enabled screensaver-off && [[ $1 != "force" ]]; then
   exit 1
 fi
 
-# Silently quit Walker on overlay
-walker -q
+# Silently dismiss the shell menu so the screensaver is not layered under it
+ub-shell -q shell hide ubuntu.menu 2>/dev/null || true
 
 focused=$(ub-hyprland-monitor-focused)
 terminal=$(xdg-terminal-exec --print-id)

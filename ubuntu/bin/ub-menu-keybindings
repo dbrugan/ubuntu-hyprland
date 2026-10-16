@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# ub:summary=Display Hyprland keybindings defined in your configuration using walker for an interactive search menu.
+# ub:summary=Display Hyprland keybindings defined in your configuration through the shell menu.
 
 declare -A KEYCODE_SYM_MAP
 
@@ -243,9 +243,14 @@ output_keybindings() {
 if [[ $1 == "--print" || $1 == "-p" ]]; then
   output_keybindings
 else
-  monitor_height=$(hyprctl monitors -j | jq -r '.[] | select(.focused == true) | .height')
-  menu_height=$((monitor_height * 40 / 100))
+  # Read the binding lines off stdin so the list is built exactly as --print
+  # builds it, and hand them to the shell menu as options.
+  mapfile -t bindings < <(output_keybindings)
 
-  output_keybindings |
-    walker --dmenu -p 'Keybindings' --width 800 --height "$menu_height"
+  if (( ${#bindings[@]} == 0 )); then
+    echo "No Hyprland bindings found." >&2
+    exit 1
+  fi
+
+  ub-menu-select 'Keybindings' "${bindings[@]}" -- --width 800 --maxheight 500
 fi

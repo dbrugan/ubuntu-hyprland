@@ -91,7 +91,7 @@ repository setup is silently skipped.
 
 The installer writes a first-run marker. On the first login it applies the
 post-install steps that need a session: power profile and battery timer,
-firewall, resolved symlink, GTK theme, swayosd, elephant, and the welcome
+firewall, resolved symlink, GTK theme, swayosd, and the welcome
 notifications. Watch for a "Setup Wi-Fi" notification if the machine has no
 network yet.
 
@@ -105,11 +105,10 @@ current file and prints a diff first:
 ```
 ub refresh config hypr/hyprlock.conf
 ub refresh hyprland
-ub refresh walker
-ub refresh waybar
+ub refresh shell
 ```
 
 These examples reflect the currently installed setup, which still uses
-Hyprland `.conf` files and the Waybar/Walker bar stack. The upstream reference
-is pinned at Omarchy v4.0.4, where those files are `.lua` and the bar is
-`omarchy-shell`; porting that migration will replace this list.
+Hyprland `.conf` files. The bar, menus, notifications, and OSD all come from
+the Quickshell shell. The upstream reference is pinned at Omarchy v4.0.4, where
+those Hyprland files are `.lua`; porting that migration will replace this list.

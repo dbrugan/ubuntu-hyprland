@@ -1,0 +1,80 @@
+{
+  // Ubuntu menu definition.
+  //
+  // JSONC is used for Neovim-friendly highlighting, comments, and trailing
+  // commas. IDs are object keys. Dotted IDs imply hierarchy: trigger.capture
+  // belongs under trigger. Kind is inferred: action -> action, target ->
+  // link, otherwise submenu.
+  //
+  // Optional fields:
+  //   aliases   alternate `ub menu summon <name>` routes; also searchable
+  //   icon      Nerd Font glyph for the row
+  //   label     visible row title
+  //   title     header shown when the submenu opens; defaults to label
+  //   when      shell condition; hide the row when it fails
+  //   checked   shell condition; append a check mark when it succeeds
+  //   provider  a provider key from the `providers` map in Menu.qml
+  //
+  // This mirrors the structure the Walker-era ub-menu router exposed, so the
+  // menu a user knows is the menu they still get. The providers `themes`,
+  // `backgrounds`, and `unlocks` are port-only; see Menu.qml.
+
+  // Root menu
+  "apps": {"icon":"󰀻","label":"Apps","aliases":["app","applications"],"provider":"apps"},
+  "learn": {"icon":"󰧑","label":"Learn"},
+  "trigger": {"icon":"󱓞","label":"Trigger"},
+  "setup": {"icon":"","label":"Setup","aliases":["settings"]},
+  "system": {"icon":"","label":"System","aliases":["power-menu"]},
+
+  // Learn
+  "learn.keybindings": {"icon":"","label":"Keybindings","action":"ub-menu-keybindings"},
+  "learn.hyprland": {"icon":"","label":"Hyprland","action":"ub-launch-browser 'https://wiki.hypr.land/'"},
+  "learn.neovim": {"icon":"","label":"Neovim","action":"ub-launch-browser 'https://www.lazyvim.org/keymaps'"},
+  "learn.bash": {"icon":"󱆃","label":"Bash","action":"ub-launch-browser 'https://devhints.io/bash'"},
+
+  // Trigger
+  "trigger.reminder": {"icon":"󰔛","label":"Reminder","aliases":["reminder"]},
+  "trigger.reminder.set": {"icon":"󰔛","label":"Set one","action":"ub-reminder-new"},
+  "trigger.reminder.show": {"icon":"󰔛","label":"Show all","action":"ub-reminder show"},
+  "trigger.reminder.clear": {"icon":"󰔛","label":"Clear all","action":"ub-reminder clear"},
+  "trigger.capture": {"icon":"","label":"Capture","aliases":["capture","screenshot"]},
+  "trigger.capture.screenshot": {"icon":"","label":"Screenshot","action":"ub-capture-screenshot"},
+  "trigger.capture.text": {"icon":"󰉙","label":"Text Extraction","action":"ub-capture-text-extraction"},
+  "trigger.transcode": {"icon":"󰧸","label":"Transcode","action":"ub-transcode"},
+  "trigger.toggle": {"icon":"󰔎","label":"Toggle","aliases":["toggle"]},
+  "trigger.toggle.gaps": {"icon":"󰔎","label":"Window gaps","action":"ub-hyprland-window-gaps-toggle"},
+  "trigger.toggle.aspect": {"icon":"󰔎","label":"Single-window square aspect","action":"ub-hyprland-window-single-square-aspect-toggle"},
+  "trigger.toggle.bar": {"icon":"󰔎","label":"Top bar","action":"ub-toggle-bar"},
+  "trigger.hardware": {"icon":"","label":"Hardware","aliases":["hardware"]},
+  "trigger.hardware.displays": {"icon":"","label":"Displays","action":"ub-hyprland-monitor-scaling-cycle"},
+  "trigger.hardware.keyboard": {"icon":"","label":"Keyboard","action":"ub-toggle-touchpad"},
+  "trigger.hardware.lock": {"icon":"","label":"Lock","action":"ub-system-lock"},
+
+  // Setup
+  "setup.audio": {"icon":"","label":"Audio","action":"ub-launch-audio"},
+  "setup.wifi": {"icon":"","label":"Wifi","action":"ub-launch-wifi"},
+  "setup.bluetooth": {"icon":"","label":"Bluetooth","action":"ub-launch-bluetooth"},
+  "setup.power": {"icon":"","label":"Power","aliases":["power"],"provider":"power-profiles"},
+  "setup.monitors": {"icon":"","label":"Monitors","action":"ub-launch-editor ~/.config/hypr/monitors.conf"},
+  "setup.keybindings": {"icon":"","label":"Keybindings","action":"ub-launch-editor ~/.config/hypr/bindings.conf"},
+  "setup.input": {"icon":"","label":"Input","action":"ub-launch-editor ~/.config/hypr/input.conf"},
+  "setup.defaults": {"icon":"","label":"Defaults"},
+  "setup.defaults.browser": {"icon":"","label":"Browser","action":"ub-default-browser firefox"},
+  "setup.defaults.terminal": {"icon":"","label":"Terminal","action":"ub-default-terminal alacritty"},
+  "setup.defaults.editor": {"icon":"","label":"Editor","action":"ub-default-editor nvim"},
+  "setup.config": {"icon":"","label":"Config","action":"ub-launch-editor ~/.config/hypr/hyprland.conf"},
+
+  // Style, ported from the Elephant theme/background/unlock menus
+  "style": {"icon":"","label":"Style"},
+  "style.theme": {"icon":"","label":"Theme","aliases":["themes","theme"],"provider":"themes"},
+  "style.background": {"icon":"","label":"Background","aliases":["background","backgrounds"],"provider":"backgrounds"},
+  "style.unlock": {"icon":"","label":"Unlock","provider":"unlocks"},
+
+  // System
+  "system.screensaver": {"icon":"󰝤","label":"Screensaver","action":"ub-launch-screensaver force"},
+  "system.lock": {"icon":"","label":"Lock","action":"ub-system-lock"},
+  "system.suspend": {"icon":"","label":"Suspend","when":"! ub-toggle-enabled suspend-off","action":"systemctl suspend"},
+  "system.logout": {"icon":"","label":"Logout","action":"ub-system-logout"},
+  "system.restart": {"icon":"","label":"Restart","action":"ub-system-reboot"},
+  "system.shutdown": {"icon":"","label":"Shutdown","action":"systemctl poweroff"},
+}

@@ -4,7 +4,7 @@ if [[ -n ${UBUNTU_ONLINE_INSTALL:-} ]]; then
     sudo bash -c "$(curl -fsSL https://pacstall.dev/q/install)"
   fi
 
-  # Our pacscripts (walker, elephant, and friends) live in our own pacstall repo.
+  # Our pacscripts (quickshell, and friends) live in our own pacstall repo.
   # The bootstrap above resets pacstallrepo, so add ours after it runs.
   if ! grep -q "dbrugan-pacstall-programs" /usr/share/pacstall/repo/pacstallrepo; then
     sudo pacstall -A https://github.com/dbrugan/dbrugan-pacstall-programs/tree/master/packages

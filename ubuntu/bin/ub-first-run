@@ -21,7 +21,6 @@ if [[ -f $FIRST_RUN_MODE ]]; then
   bash "$UBUNTU_PATH/install/first-run/swayosd.sh"
   bash "$UBUNTU_PATH/install/first-run/gtk-primary-paste.sh"
   bash "$UBUNTU_PATH/install/first-run/text-scaling.sh"
-  bash "$UBUNTU_PATH/install/first-run/elephant.sh"
 
   # Remove the temporary passwordless-sudo allowlist preflight/first-run-mode.sh wrote.
   # It is only needed for the steps above, so it goes away on the first login.

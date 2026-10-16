@@ -236,13 +236,13 @@ against.
 - `shell/` - the ported Quickshell shell (upstream `omarchy/shell/`), a single
   long-running instance that owns the bar, menus, notifications, OSD, lock,
   and polkit agent. It is **partly active**: `ub-launch-shell` runs from
-  `default/hypr/autostart.conf` and the bar has been cut over to it, but menus
-  still come from Walker/Elephant, notifications from Mako, and the OSD from
-  SwayOSD. `config/ubuntu/shell.json` lists `ubuntu.background`,
-  `ubuntu.notifications`, and `ubuntu.polkit` under `disabledPlugins` so the
-  shell does not claim the wallpaper, the notification bus, or the polkit
-  agent ahead of their cutover. Do not enable one of those piecemeal — see
-  `# Known WIP Gaps` for the remaining order.
+  `default/hypr/autostart.conf`, and both the bar and the menus have been cut
+  over to it, but notifications still come from Mako and the OSD from SwayOSD.
+  `config/ubuntu/shell.json` lists `ubuntu.background`, `ubuntu.notifications`,
+  and `ubuntu.polkit` under `disabledPlugins` so the shell does not claim the
+  wallpaper, the notification bus, or the polkit agent ahead of their cutover.
+  Do not enable one of those piecemeal — see `# Known WIP Gaps` for the
+  remaining order.
 
 ## Shell
 
@@ -271,6 +271,12 @@ are the only substantive deviations. Everything else stays byte-comparable with
   Deferred: `agents`, `clipboard`, `dev-gallery`, `emojis`, `image-picker`,
   `reminders`, and panels `disk-speedtest`, `dropbox`, `speedtest`, `tailscale`,
   `weather`, `wifiqr`. `config/ubuntu/shell.json` is trimmed to match.
+- `plugins/menu/Menu.qml` carries three port-only providers — `themes`,
+  `backgrounds`, and `unlocks` — ported from the Elephant menus this setup used
+  to ship as `default/elephant/ubuntu_{themes,background_selector,unlocks}.lua`.
+  Each is a bash one-liner emitting the `label\tvalue\tcurrent` rows the other
+  providers use. Add new ones here rather than as separate scripts: only
+  providers in that `providers` map are runnable in this Quickshell version.
 - Launch and IPC: `ub-launch-shell` supervises the instance the way upstream's
   launcher does; `ub-shell` is the IPC client (`qs ipc ... call --`). Both read
   `$UBUNTU_PATH` from the uwsm session environment, which is set at login and
@@ -370,14 +376,14 @@ These pieces are intentional scaffolding, not breakage:
   env (`config/uwsm/`), a fontconfig default for `ub-font-set`, hook samples
   under `config/ubuntu/hooks/`, and defaults for the apps the desktop actually
   launches or offers: `mako`, `fcitx5` plus its `environment.d` variables,
-  `swayosd` plus its user service, `walker` with the elephant provider configs,
-  `foot`/`ghostty`/`kitty`, `alacritty`, `starship`, `tmux`, `fastfetch`,
-  `git`, `wiremix`, `opencode`, Typora themes, and the share picker. `imv` and
-  `xournalpp` are not installed, so their configs are absent. Note that
+  `swayosd` plus its user service, `foot`/`ghostty`/`kitty`,
+  `alacritty`, `starship`, `tmux`, `fastfetch`, `git`, `wiremix`,
+  `opencode`, Typora themes, and the share picker. `imv` and `xournalpp`
+  are not installed, so their configs are absent. Note that
   upstream v4.0.4 has already dropped `waybar/`, `walker/`, `mako/`, `swayosd/`,
   `uwsm/`, `fastfetch/`, `fontconfig/`, and `Typora` from `config/` in favour
-  of `shell/` and `default/`; Walker, Mako, and SwayOSD are the remaining ones
-  to cut over.
+  of `shell/` and `default/`; Mako and SwayOSD are the remaining ones to cut
+  over.
 - `btop` and `lazygit` are installed and launched from the TUI bindings, but
   ship no `config/`. Upstream's `config/btop/btop.conf` and
   `config/lazygit/config.yml` are deliberately not carried: both apps fall
@@ -392,7 +398,7 @@ These pieces are intentional scaffolding, not breakage:
   will not recolor them.
 - `themes/` ships Tokyo Night and Catppuccin Latte. Each theme carries the
   files the desktop sources directly (`hyprland.conf`, `hyprlock.conf`,
-  `walker.css`, `gum.env.conf`, `colors.toml`, `backgrounds/`),
+  `gum.env.conf`, `colors.toml`, `backgrounds/`),
   pre-rendered rather than templated, so `ub-theme-set` stays a directory
   swap. Keep exactly one `background` and one `foreground` line at the start
   of a key in `colors.toml`: `ub-plymouth-set-by-theme` greps those prefixes
@@ -450,6 +456,11 @@ These pieces are intentional scaffolding, not breakage:
   intentionally omitted from this setup). Upstream v4.0.4 deleted the whole
   `install/packaging/` directory but still ships the `webapp-*` and
   `launch-webapp` commands.
+- Two Hyprland bindings were dropped with the Walker/Elephant cutover rather
+  than pointed at nothing: `SUPER CTRL, E` (emoji picker) and `SUPER CTRL, V`
+  (clipboard manager) both launched an Elephant provider that has no equivalent
+  here. They come back with the shell's deferred `emojis` and `clipboard`
+  plugins, which are the upstream equivalents of those providers.
 - A set of optional third-party `install-*` / `remove-*` commands is
   deliberately not ported. Each either needs a package this setup does not
   carry, depends on a command already omitted above, or serves a workflow

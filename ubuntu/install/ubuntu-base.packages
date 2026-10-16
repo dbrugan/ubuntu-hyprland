@@ -130,13 +130,6 @@ btrfs-progs
 # pacstall replaces Arch's yay here.
 quickshell
 inotify-tools
-walker-bin
-elephant-bin
-elephant-providerlist-bin
-elephant-desktopapplications-bin
-elephant-files-bin
-elephant-clipboard-bin
-elephant-runner-bin
 gpu-screen-recorder
 gpu-screen-recorder-ui
 gpu-screen-recorder-notification

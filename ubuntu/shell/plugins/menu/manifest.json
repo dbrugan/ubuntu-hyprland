@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
   "id": "ubuntu.menu",
-  "name": "Omarchy menu",
+  "name": "Ubuntu menu",
   "version": "1.0.0",
   "author": "Omarchy",
-  "description": "Quickshell-powered Omarchy command menu",
+  "description": "Quickshell-powered Ubuntu command menu",
   "kinds": [
     "menu",
     "bar-widget"
@@ -15,8 +15,8 @@
     "barWidget": "BarWidget.qml"
   },
   "barWidget": {
-    "displayName": "Omarchy menu",
-    "description": "Launches the Omarchy menu",
+    "displayName": "Ubuntu menu",
+    "description": "Launches the Ubuntu menu",
     "category": "Compositor",
     "allowMultiple": false
   }
