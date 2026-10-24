@@ -236,11 +236,46 @@ against.
 - `shell/` - the ported Quickshell shell (upstream `omarchy/shell/`), a single
   long-running instance that owns the bar, menus, notifications, OSD, lock,
   wallpaper, and polkit agent. It is **active**: `ub-launch-shell` runs from
-  `default/hypr/autostart.conf`, and every surface it provides has been cut
+  `default/hypr/autostart.lua`, and every surface it provides has been cut
   over from Waybar, Walker/Elephant, Mako, SwayOSD, swaybg, and the GNOME
   polkit agent. `config/ubuntu/shell.json` carries no `disabledPlugins`; it
   only sets the bar layout and idle timings. Add a plugin there rather than
   starting a second process for the same job.
+
+## Hyprland Lua
+
+The Hyprland tree matches upstream v4.0.4's Hyprland Lua model and carries no
+hyprlang `.conf` files except the non-Hyprland ones (`hyprlock.conf`,
+`hypridle.conf`, `hyprsunset.conf`, `xdph.conf`, and the SDDM greeter at
+`default/sddm/hyprland.conf`, which the greeter loads by explicit `--config`
+path).
+
+- `config/hypr/hyprland.lua` is the user entry point. It loads
+  `default/hypr/ubuntu.lua` for the ported defaults and
+  `hypr/{monitors,input,bindings,looknfeel,autostart}.lua` for user
+  overrides.
+- `default/hypr/` mirrors upstream's module tree: `bootstrap.lua`,
+  `paths.lua`, `require_all.lua`/`require_optional.lua`, `helpers.lua`,
+  then `envs`, `input`, `looknfeel`, `windows`, `apps`, `bindings`,
+  `toggles`, and `autostart`. `plain-bindings.lua` is the reduced set
+  `ub-remove-preinstalls` restores into `~/.config/hypr/bindings.lua`.
+- Persistent toggles are Lua files under
+  `~/.local/state/ubuntu/toggles/hypr/`, loaded by `toggles.lua` with
+  `reload` so order matters. Never read them out of `~/.local/share`.
+- Generated flags are a code-injection surface: writer scripts must
+  sanitize connector/device names (`^[A-Za-z0-9._-]+$`) before writing
+  `hl.monitor(...)`/`hl.device(...)` Lua, and device names go into
+  `*-disabled-name` data files read by `disabled-input-device.lua`, never
+  into generated Lua.
+- `config/hypr/.luarc.json` points editors at `/usr/share/hypr/stubs` and
+  declares the `hl`/`o` globals; keep it in `ub-refresh-hyprland`.
+- `input.lua` reads `/etc/vconsole.conf` for layouts, so the install-time
+  `detect-keyboard-layout.sh` patching step was dropped, as upstream does.
+- Deliberate non-ports see plank details in the gaps list below: no
+  `nvidia.lua` (NVIDIA envs go to the uwsm session env via
+  `install/config/hardware/nvidia.sh`), no upstream
+  `workspace-layouts.lua`, no webapp dispatcher branches, and no preinstalled
+  application binding gates.
 
 ## Shell
 
@@ -334,17 +369,19 @@ the `color0-15` palette and theme-selection machinery do not apply).
 To copy a default config to user config with automatic backup:
 
 ```bash
-ub-refresh-config hypr/hyprland.conf
+ub-refresh-config hypr/hyprland.lua
 ```
 
-This copies the default config to `~/.config/hypr/hyprland.conf`. The argument
+This copies the default config to `~/.config/hypr/hyprland.lua`. The argument
 is interpolated into both paths and only checked with `[[ -e ]]`, so pass a
 plain relative path: a name containing `..` resolves and copies, landing outside
 `~/.config` rather than being rejected.
 
-Upstream v4.0.4 renamed most Hyprland configs from `.conf` to `.lua` and added
-`omarchy-refresh-shell` / `omarchy-refresh-herdr` while dropping the
-`waybar`/`walker`/`swayosd`/`hyprlock` refreshers along with those apps.
+Upstream v4.0.4 renamed the Hyprland files from `.conf` to `.lua` and added
+`omarchy-refresh-hyprland` / `omarchy-refresh-shell` while dropping the
+`waybar`/`walker`/`swayosd`/`hyprlock` refreshers along with those apps. This
+port has the same shape: `ub-refresh-hyprland` refreshes the user Lua files,
+`hypr/.luarc.json`, and `xdph.conf`, then re-seeds the toggle flags.
 
 # Tests
 
@@ -419,8 +456,8 @@ These pieces are intentional scaffolding, not breakage:
   `config/hyprland-preview-share-picker/config.yaml`. Switching themes
   will not recolor them.
 - `themes/` ships Tokyo Night and Catppuccin Latte. Each theme carries the
-  files the desktop sources directly (`hyprland.conf`, `hyprlock.conf`,
-  `gum.env.conf`, `colors.toml`, `backgrounds/`),
+  files the desktop sources directly (`hyprland.lua`, `hyprlock.conf`,
+  `gum_env.lua`, `colors.toml`, `backgrounds/`),
   pre-rendered rather than templated, so `ub-theme-set` stays a directory
   swap. Keep exactly one `background` and one `foreground` line at the start
   of a key in `colors.toml`: `ub-plymouth-set-by-theme` greps those prefixes
@@ -535,7 +572,7 @@ These pieces are intentional scaffolding, not breakage:
   v4.0.4 has since moved this to `install/hardware/nvidia.sh` and hands the
   per-session env to `default/hypr/nvidia.lua`.
 - `install/config/config.sh` copies `config/` over `~/.config/` unconditionally,
-  so re-running the installer discards hand edits to `~/.config/hypr/*.conf`.
+  so re-running the installer discards hand edits to `~/.config/hypr/*.lua`.
   Answer it with `ub-refresh-config`, which is ported and backs up first.
   Upstream v4.0.4 deleted `config.sh` entirely in favour of the
   seed/finalize/resync model described in `omarchy/docs/file-layout.md`, so

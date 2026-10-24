@@ -1,11 +1,17 @@
 #!/bin/bash
 
-# ub:summary=Overwrite the user configs in ~/.config/hypr with the shipped defaults.
+# ub:summary=Overwrite the user Hyprland Lua configs in ~/.config/hypr with the shipped defaults.
 
 UBUNTU_SHARE="${UBUNTU_PATH:-$HOME/.local/share/ubuntu-hyprland}"
 
-for conf in autostart bindings input looknfeel monitors hyprland xdph; do
-  ub-refresh-config "hypr/$conf.conf"
-done
+ub-refresh-config hypr/.luarc.json
+ub-refresh-config hypr/autostart.lua
+ub-refresh-config hypr/bindings.lua
+ub-refresh-config hypr/input.lua
+ub-refresh-config hypr/looknfeel.lua
+ub-refresh-config hypr/hyprland.lua
+ub-refresh-config hypr/monitors.lua
+ub-refresh-config hypr/xdph.conf
 
-bash "$UBUNTU_SHARE/install/config/detect-keyboard-layout.sh"
+mkdir -p ~/.local/state/ubuntu/toggles/hypr
+cp "$UBUNTU_SHARE/default/hypr/toggles/flags.lua" ~/.local/state/ubuntu/toggles/hypr/

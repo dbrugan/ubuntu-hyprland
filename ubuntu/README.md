@@ -104,12 +104,15 @@ current file and prints a diff first:
 
 ```
 ub refresh config hypr/hyprlock.conf
+ub refresh config hypr/hyprland.lua
 ub refresh hyprland
 ub refresh shell
 ```
 
-These examples reflect the currently installed setup, which still uses
-Hyprland `.conf` files. The bar, menus, notifications, OSD, wallpaper, lock,
-and polkit agent all come from the Quickshell shell. The upstream reference is
-pinned at Omarchy v4.0.4, where those Hyprland files are `.lua`; porting that
-migration will replace this list.
+The Hyprland tree is Hyprland Lua, matching the upstream reference pinned at
+Omarchy v4.0.4. `~/.config/hypr/hyprland.lua` is the entry point: it loads the
+shared defaults from `$UBUNTU_PATH/default/hypr/` and the user overrides
+(`monitors.lua`, `input.lua`, `bindings.lua`, `looknfeel.lua`,
+`autostart.lua`) from `~/.config/hypr/`. Persistent toggles live as Lua flags
+under `~/.local/state/ubuntu/toggles/hypr/`. The bar, menus, notifications,
+OSD, wallpaper, lock, and polkit agent all come from the Quickshell shell.
