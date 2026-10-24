@@ -8,8 +8,8 @@ if gum confirm "Are you sure you want to remove all preinstalled TUI wrappers an
   # Webapps are not part of this setup, so there is nothing to remove for them.
   ub-tui-remove-all
 
-  cp ~/.config/hypr/bindings.conf ~/.config/hypr/bindings.conf.bak
-  cp "$UBUNTU_PATH/default/hypr/plain-bindings.conf" ~/.config/hypr/bindings.conf
+  cp ~/.config/hypr/bindings.lua ~/.config/hypr/bindings.lua.bak 2>/dev/null || true
+  cp "$UBUNTU_PATH/default/hypr/plain-bindings.lua" ~/.config/hypr/bindings.lua
   hyprctl reload
 
   # Remove npx stubs

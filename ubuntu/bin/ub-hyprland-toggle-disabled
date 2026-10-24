@@ -3,4 +3,4 @@
 # ub:summary=Check if a Hyprland toggle is currently disabled (missing).
 # ub:args=<flag-name>
 
-[[ ! -f "$HOME/.local/state/ubuntu/toggles/hypr/$1.conf" ]]
+[[ ! -f "$HOME/.local/state/ubuntu/toggles/hypr/$1.lua" ]]

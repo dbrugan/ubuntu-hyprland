@@ -28,8 +28,8 @@ options nvidia_drm modeset=1
 EOF
 
   # Add NVIDIA environment variables based on GPU architecture.
-  # These go in the uwsm session env (sourced at login), not
-  # ~/.config/hypr/envs.conf, which hyprland.conf does not source.
+  # These go in the uwsm session env (sourced at login); the compositor env
+  # carries no NVIDIA settings of its own.
   UWSM_ENV="$HOME/.config/uwsm/env"
   if [[ ! -f $UWSM_ENV ]]; then
     mkdir -p "$(dirname "$UWSM_ENV")"

@@ -4,7 +4,7 @@
 # ub:args=<on|off|toggle|recover>
 
 TOGGLE="internal-monitor-mirror"
-TOGGLE_FLAG="$HOME/.local/state/ubuntu/toggles/hypr/$TOGGLE.conf"
+TOGGLE_FLAG="$HOME/.local/state/ubuntu/toggles/hypr/$TOGGLE.lua"
 DISABLE_TOGGLE="internal-monitor-disable"
 
 # Get names dynamically
@@ -28,8 +28,16 @@ enable() {
   fi
 
   if ub-hyprland-toggle-disabled "$TOGGLE"; then
+    # Both names are written into generated Lua below, so only plain connector
+    # names may pass; anything else could execute on the next reload.
+    for output in "$INTERNAL" "$EXTERNAL"; do
+      if [[ ! $output =~ ^[A-Za-z0-9._-]+$ ]]; then
+        ub-notification-send "" "󰍹    Refusing unsafe monitor name"
+        exit 1
+      fi
+    done
     mkdir -p "$(dirname "$TOGGLE_FLAG")"
-    echo "monitor=$EXTERNAL, preferred, auto, 1, mirror, $INTERNAL" > "$TOGGLE_FLAG"
+    printf 'hl.monitor({ output = "%s", mode = "preferred", position = "auto", scale = 1, mirror = "%s" })\n' "$EXTERNAL" "$INTERNAL" > "$TOGGLE_FLAG"
     ub-notification-send "" "󰍹    Mirroring enabled ($EXTERNAL)"
     hyprctl reload
   fi

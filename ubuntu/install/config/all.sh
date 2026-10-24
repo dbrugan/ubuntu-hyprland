@@ -5,7 +5,6 @@ run_logged $UBUNTU_INSTALL/config/gpg.sh
 run_logged $UBUNTU_INSTALL/config/ssh-flakiness.sh
 run_logged $UBUNTU_INSTALL/config/increase-file-watchers.sh
 run_logged $UBUNTU_INSTALL/config/increase-fd-limit.sh
-run_logged $UBUNTU_INSTALL/config/detect-keyboard-layout.sh
 run_logged $UBUNTU_INSTALL/config/xcompose.sh
 run_logged $UBUNTU_INSTALL/config/mise-work.sh
 run_logged $UBUNTU_INSTALL/config/docker.sh

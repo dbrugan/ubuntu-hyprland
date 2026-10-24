@@ -55,14 +55,14 @@
   "setup.wifi": {"icon":"","label":"Wifi","action":"ub-launch-wifi"},
   "setup.bluetooth": {"icon":"","label":"Bluetooth","action":"ub-launch-bluetooth"},
   "setup.power": {"icon":"","label":"Power","aliases":["power"],"provider":"power-profiles"},
-  "setup.monitors": {"icon":"","label":"Monitors","action":"ub-launch-editor ~/.config/hypr/monitors.conf"},
-  "setup.keybindings": {"icon":"","label":"Keybindings","action":"ub-launch-editor ~/.config/hypr/bindings.conf"},
-  "setup.input": {"icon":"","label":"Input","action":"ub-launch-editor ~/.config/hypr/input.conf"},
+  "setup.monitors": {"icon":"","label":"Monitors","action":"ub-launch-editor ~/.config/hypr/monitors.lua"},
+  "setup.keybindings": {"icon":"","label":"Keybindings","action":"ub-launch-editor ~/.config/hypr/bindings.lua"},
+  "setup.input": {"icon":"","label":"Input","action":"ub-launch-editor ~/.config/hypr/input.lua"},
   "setup.defaults": {"icon":"","label":"Defaults"},
   "setup.defaults.browser": {"icon":"","label":"Browser","action":"ub-default-browser firefox"},
   "setup.defaults.terminal": {"icon":"","label":"Terminal","action":"ub-default-terminal alacritty"},
   "setup.defaults.editor": {"icon":"","label":"Editor","action":"ub-default-editor nvim"},
-  "setup.config": {"icon":"","label":"Config","action":"ub-launch-editor ~/.config/hypr/hyprland.conf"},
+  "setup.config": {"icon":"","label":"Config","action":"ub-launch-editor ~/.config/hypr/hyprland.lua"},
 
   // Style, ported from the Elephant theme/background/unlock menus
   "style": {"icon":"","label":"Style"},
