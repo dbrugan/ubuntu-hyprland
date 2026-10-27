@@ -237,18 +237,22 @@ against.
   long-running instance that owns the bar, menus, notifications, OSD, lock,
   wallpaper, and polkit agent. It is **active**: `ub-launch-shell` runs from
   `default/hypr/autostart.lua`, and every surface it provides has been cut
-  over from Waybar, Walker/Elephant, Mako, SwayOSD, swaybg, and the GNOME
-  polkit agent. `config/ubuntu/shell.json` carries no `disabledPlugins`; it
+  over from Waybar, Walker/Elephant, Mako, SwayOSD, swaybg, hyprlock, and
+  the GNOME polkit agent. `config/ubuntu/shell.json` carries no
+  `disabledPlugins`; it
   only sets the bar layout and idle timings. Add a plugin there rather than
   starting a second process for the same job.
 
 ## Hyprland Lua
 
 The Hyprland tree matches upstream v4.0.4's Hyprland Lua model and carries no
-hyprlang `.conf` files except the non-Hyprland ones (`hyprlock.conf`,
-`hypridle.conf`, `hyprsunset.conf`, `xdph.conf`, and the SDDM greeter at
+hyprlang `.conf` files except the non-Hyprland ones (`hypridle.conf`,
+`hyprsunset.conf`, `xdph.conf`, and the SDDM greeter at
 `default/sddm/hyprland.conf`, which the greeter loads by explicit `--config`
-path).
+path). Upstream dropped hyprlock with the shell lock and the port followed:
+`ub-system-lock` drives the shell's lock surface through
+`ub-shell lock lock`, the base package list ships no hyprlock, and the
+fingerprint commands touch only PAM.
 
 - `config/hypr/hyprland.lua` is the user entry point. It loads
   `default/hypr/ubuntu.lua` for the ported defaults and
@@ -456,8 +460,8 @@ These pieces are intentional scaffolding, not breakage:
   `config/hyprland-preview-share-picker/config.yaml`. Switching themes
   will not recolor them.
 - `themes/` ships Tokyo Night and Catppuccin Latte. Each theme carries the
-  files the desktop sources directly (`hyprland.lua`, `hyprlock.conf`,
-  `gum_env.lua`, `colors.toml`, `backgrounds/`),
+  files the desktop sources directly (`hyprland.lua`, `gum_env.lua`,
+  `colors.toml`, `backgrounds/`),
   pre-rendered rather than templated, so `ub-theme-set` stays a directory
   swap. Keep exactly one `background` and one `foreground` line at the start
   of a key in `colors.toml`: `ub-plymouth-set-by-theme` greps those prefixes
