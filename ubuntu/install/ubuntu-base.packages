@@ -96,14 +96,13 @@ slurp
 starship
 system-config-printer
 python3-terminaltexteffects
-thunderbird
 tmux
 tesseract-ocr
-typora
 ufw
 unzip
 upower
 uwsm
+inotify-tools
 wireless-regdb
 wireplumber
 wl-clipboard
@@ -126,7 +125,6 @@ btrfs-progs
 # Pacscripts, installed via install/preflight/pacstall.sh and ub-pkg-pacstall-add.
 # pacstall replaces Arch's yay here.
 quickshell
-inotify-tools
 gpu-screen-recorder
 gpu-screen-recorder-ui
 gpu-screen-recorder-notification
