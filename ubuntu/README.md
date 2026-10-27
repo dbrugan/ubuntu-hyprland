@@ -103,7 +103,7 @@ commands to pull a file back to its shipped default; each one backs up the
 current file and prints a diff first:
 
 ```
-ub refresh config hypr/hyprlock.conf
+ub refresh config hypr/hypridle.conf
 ub refresh config hypr/hyprland.lua
 ub refresh hyprland
 ub refresh shell

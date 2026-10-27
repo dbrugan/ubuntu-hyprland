@@ -20,10 +20,6 @@ if [[ -f ~/.config/alacritty/alacritty.toml ]]; then
   sed -i "s/family = \".*\"/family = \"$font_name\"/g" ~/.config/alacritty/alacritty.toml
 fi
 
-if [[ -f ~/.config/hypr/hyprlock.conf ]]; then
-  sed -i "s/font_family = .*/font_family = $font_name/g" ~/.config/hypr/hyprlock.conf
-fi
-
 # The shell bar, menu, OSD, and notifications all read their font from
 # shell.toml, which is rendered with the theme rather than edited in place, so
 # there is nothing to rewrite here yet.

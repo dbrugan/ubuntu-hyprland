@@ -2,7 +2,7 @@
 
 # ub:summary=Copies the named config from the shipped config/X/Y/Z to ~/.config/X/Y/Z, backing up any existing file.
 # ub:args=<config-path>
-# ub:examples=ub refresh config hypr/hyprlock.conf
+# ub:examples=ub refresh config hypr/hypridle.conf
 
 config_file=$1
 
@@ -11,9 +11,9 @@ if [[ -z $config_file ]]; then
   Usage: $(basename "$0") <config-path>
 
   Must provide a file path relative to the config directory to be refreshed.
-  To copy config/hypr/hyprlock.conf to ~/.config/hypr/hyprlock.conf:
+  To copy config/hypr/hypridle.conf to ~/.config/hypr/hypridle.conf:
 
-    $(basename "$0") hypr/hyprlock.conf
+    $(basename "$0") hypr/hypridle.conf
 USAGE
   exit 1
 fi
