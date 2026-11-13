@@ -24,6 +24,18 @@ fi
 EFI=""
 [[ -d /sys/firmware/efi ]] && EFI=true
 
+# Snapper snapshot boot needs / on btrfs with /.snapshots as its own mounted
+# btrfs subvolume (snapper's create-config layout). Without that layout the
+# snapshot entries and the limine-snapper-sync service have nothing to work
+# with, so they are skipped rather than left to fail. A plain /.snapshots
+# directory on / does not qualify: findmnt reports the containing mount's
+# target for it, not the path itself.
+snapper_layout_ok() {
+  [[ $(findmnt -n -o FSTYPE /) = "btrfs" ]] || return 1
+  [[ $(findmnt -n -o TARGET "/.snapshots" 2>/dev/null) == "/.snapshots" ]] || return 1
+  [[ $(findmnt -n -o FSTYPE "/.snapshots" 2>/dev/null) = "btrfs" ]]
+}
+
 # Find an existing limine.conf so we can preserve its kernel cmdline. Without
 # this we cannot know what root=/cryptdevice= the system was built to boot with.
 limine_config=""
@@ -226,28 +238,34 @@ fi
 
 # ----------------------------------------------------------------- snapper --
 # Snapshot boot only for the root subvolume; /home is user data and rolling it
-# back loses work. Same reasoning as upstream.
-if ub-cmd-present snapper && [[ -d /.snapshots ]]; then
-  if ! snapper list-configs 2>/dev/null | grep -q "root"; then
-    echo "Creating snapper root config"
-    sudo snapper -c root create-config /
+# back loses work. Same reasoning as upstream. Skipped entirely when the
+# subvolume layout does not support snapper, so the rest of this script
+# (bootloader config, UKIs, boot entries) still converges flawlessly.
+if snapper_layout_ok; then
+  if ub-cmd-present snapper; then
+    if ! snapper list-configs 2>/dev/null | grep -q "root"; then
+      echo "Creating snapper root config"
+      sudo snapper -c root create-config /
+    fi
+
+    if [[ -f /etc/snapper/configs/root ]]; then
+      sudo cp "$UBUNTU_PATH/default/snapper/root" /etc/snapper/configs/root
+    fi
+
+    # Full qgroup accounting is a major performance drag on every write.
+    sudo btrfs quota disable / 2>/dev/null || true
   fi
 
-  if [[ -f /etc/snapper/configs/root ]]; then
-    sudo cp "$UBUNTU_PATH/default/snapper/root" /etc/snapper/configs/root
+  # Sync snapshot entries and keep them in step with future snapshots.
+  if ub-cmd-present limine-snapper-sync; then
+    echo "Syncing Limine snapshot entries"
+    # Limine may not be able to boot yet on a first run (no entries until this
+    # point), so a failure here is not fatal: the entries above still stand.
+    sudo limine-snapper-sync || echo "Warning: limine-snapper-sync did not run cleanly" >&2
+    chrootable_systemctl_enable limine-snapper-sync.service
   fi
-
-  # Full qgroup accounting is a major performance drag on every write.
-  sudo btrfs quota disable / 2>/dev/null || true
-fi
-
-# Sync snapshot entries and keep them in step with future snapshots.
-if ub-cmd-present limine-snapper-sync; then
-  echo "Syncing Limine snapshot entries"
-  # Limine may not be able to boot yet on a first run (no entries until this
-  # point), so a failure here is not fatal: the entries above still stand.
-  sudo limine-snapper-sync || echo "Warning: limine-snapper-sync did not run cleanly" >&2
-  chrootable_systemctl_enable limine-snapper-sync.service
+else
+  echo "Skipping snapper snapshot boot: /.snapshots is not a btrfs subvolume"
 fi
 
 # Fail loudly if the boot menu ended up with no OS entry, which is the symptom
