@@ -10,7 +10,7 @@ with a Hyprland/Quickshell desktop.
   limine bootloader, quickshell bar/shell), except where a deviation is recorded
   below.
 - Use pacstall (custom pacscripts) for packages not available in Ubuntu repos.
-- Install entry point is `./boot.sh` in the repo; see `ubuntu/README.md`.
+- Install entry point is `./boot.sh` in the repo; see `README.md`.
 
 # Supported Releases
 
@@ -18,7 +18,7 @@ Support targets Ubuntu 26.04 only, the release this setup is developed and
 tested against. Other LTS releases, non-LTS releases, and anything past
 standard security maintenance are out of scope.
 
-- `supported_lts` in `ubuntu/install/preflight/guard.sh` is the single source of
+- `supported_lts` in `install/preflight/guard.sh` is the single source of
   truth and the preflight guard enforces it. Do not widen the list casually: it
   requires re-running the package audit against each added release, since
   package names are not stable across Ubuntu releases.
@@ -36,7 +36,10 @@ standard security maintenance are out of scope.
   tracks a moving alpha, so re-pin with `git -C omarchy checkout v4.0.4`
   rather than tracking master. Note its `version` file reads `4.0.0.alpha`:
   that is an upstream tagging quirk, not a different release.
-- `ubuntu/` - the actual work: installer, bin commands, configs.
+- The repo root is the actual work (moved up from the old `ubuntu/`
+  subdirectory): `boot.sh`, `install.sh`, `bin/`, `install/`, `config/`,
+  `default/`, `shell/`, `themes/`, and the app data files. All `ubuntu/`
+  path references in older notes resolve to the repo root now.
 - `README.md` - project goals and target-system spec (btrfs subvolumes, zram,
   no swap, network-manager default, minimum tty install).
 
@@ -105,7 +108,7 @@ command is one of the established helpers listed below.
 # Command Metadata
 
 Commands in `bin/` declare CLI metadata in comments near the top of the file.
-The dispatcher (`ubuntu/bin/ub`, upstream `omarchy/bin/omarchy`) scans the first
+The dispatcher (`bin/ub`, upstream `omarchy/bin/omarchy`) scans the first
 80 lines for `# ub:key=value` metadata. `ub:` is this port's rename of upstream's
 `omarchy:` prefix; the supported key set is otherwise identical:
 
@@ -138,7 +141,7 @@ Example:
 # Runtime Environment
 
 - `$UBUNTU_PATH` (default `~/.local/share/ubuntu-hyprland`), `$UBUNTU_INSTALL`,
-  and `$UBUNTU_INSTALL_LOG_FILE` are exported by `ubuntu/install.sh`. This is a
+  and `$UBUNTU_INSTALL_LOG_FILE` are exported by `install.sh`. This is a
   local model with no upstream equivalent: v4.0.4 has deleted `install.sh` and
   `boot.sh` entirely, and instead ships `omarchy` and `omarchy-settings` as
   packages, with `OMARCHY_PATH` provided by the uwsm session environment rather
@@ -586,7 +589,7 @@ These pieces are intentional scaffolding, not breakage:
   intentionally omitted to match the target spec (no swap, zram enabled).
 - `login/limine-snapper.sh` is ported, but rewritten for Ubuntu rather than
   copied. It owns `/boot/limine.conf`, the UKIs, and the snapper snapshot menu;
-  the bootloader itself is still deployed by hand (see `ubuntu/README.md`) and
+  the bootloader itself is still deployed by hand (see `README.md`) and
   this script converges an existing install rather than creating one. Upstream's
   Arch plumbing is replaced one-for-one: `mkinitcpio` conf.d -> `initramfs-tools`
   conf.d plus an explicit module list, `limine-mkinitcpio-hook` -> `ukify` driven
